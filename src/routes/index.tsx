@@ -174,16 +174,9 @@ function ChatDrawer({
             animate={{ y: 0 }}
             exit={{ y: "100%" }}
             transition={{ type: "spring", stiffness: 320, damping: 32 }}
-            className="glass-strong fixed inset-x-0 bottom-0 z-50 mx-auto flex h-[85vh] max-w-2xl flex-col rounded-t-3xl px-5 pb-4 pt-3 md:h-[80vh]"
+            className="glass-strong fixed inset-x-0 bottom-0 z-50 mx-auto flex h-[88vh] max-w-2xl flex-col rounded-t-3xl px-2 pb-2 pt-3 md:h-[85vh]"
           >
-            <div className="flex items-center justify-between border-b border-border pb-3">
-              <div className="flex items-center gap-2">
-                <img src={avatarUrl} alt="" className="h-8 w-8" />
-                <div className="text-sm">
-                  <div className="font-medium text-foreground">Chat with Ayush</div>
-                  <div className="text-xs text-muted-foreground">Powered by Lovable AI</div>
-                </div>
-              </div>
+            <div className="flex items-center justify-end px-3 pb-2">
               <button
                 onClick={onClose}
                 className="flex h-8 w-8 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
