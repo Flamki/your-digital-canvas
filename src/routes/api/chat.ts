@@ -3,7 +3,7 @@ import { convertToModelMessages, streamText, type UIMessage } from "ai";
 import { createFireworksProvider, createLovableAiGatewayProvider } from "@/lib/ai-gateway.server";
 import { buildAyushSystemPrompt } from "@/lib/ayush-profile";
 
-const DEFAULT_FIREWORKS_MODEL = "accounts/fireworks/models/llama-v3p1-8b-instruct";
+const DEFAULT_FIREWORKS_MODEL = "accounts/fireworks/models/minimax-m3";
 const DEFAULT_LOVABLE_MODEL = "google/gemini-3-flash-preview";
 
 export const Route = createFileRoute("/api/chat")({
