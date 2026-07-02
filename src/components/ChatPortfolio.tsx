@@ -2,7 +2,7 @@ import { useChat } from "@ai-sdk/react";
 import { DefaultChatTransport } from "ai";
 import { motion, AnimatePresence } from "motion/react";
 import { useEffect, useRef, useState } from "react";
-import { ArrowUp, Sparkles } from "lucide-react";
+import { ArrowUp } from "lucide-react";
 
 const SUGGESTIONS = [
   "What do you build?",
@@ -11,9 +11,11 @@ const SUGGESTIONS = [
   "How do I reach you?",
 ];
 
-export function ChatPortfolio() {
+export function ChatPortfolio({ initialPrompt }: { initialPrompt?: string }) {
   const [input, setInput] = useState("");
   const scrollRef = useRef<HTMLDivElement>(null);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const seededRef = useRef(false);
 
   const { messages, sendMessage, status } = useChat({
     transport: new DefaultChatTransport({ api: "/api/chat" }),
@@ -21,16 +23,26 @@ export function ChatPortfolio() {
 
   const isLoading = status === "submitted" || status === "streaming";
 
-  useEffect(() => {
-    scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
-  }, [messages]);
-
   const submit = async (text: string) => {
     const value = text.trim();
     if (!value || isLoading) return;
     setInput("");
     await sendMessage({ text: value });
   };
+
+  // Auto-send seeded prompt once on mount
+  useEffect(() => {
+    if (initialPrompt && !seededRef.current) {
+      seededRef.current = true;
+      void submit(initialPrompt);
+    }
+    textareaRef.current?.focus();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  useEffect(() => {
+    scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
+  }, [messages]);
 
   return (
     <div className="flex h-full flex-col">
@@ -47,9 +59,6 @@ export function ChatPortfolio() {
               exit={{ opacity: 0 }}
               className="mx-auto max-w-md pt-6 text-center"
             >
-              <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-accent">
-                <Sparkles className="h-5 w-5 text-accent-foreground" />
-              </div>
               <p className="text-sm text-muted-foreground">
                 Ask me anything about my work, projects, or how to collab.
               </p>
@@ -84,7 +93,7 @@ export function ChatPortfolio() {
                   className={`max-w-[85%] whitespace-pre-wrap rounded-2xl px-4 py-2.5 text-sm leading-relaxed ${
                     isUser
                       ? "bg-foreground text-background"
-                      : "bg-card text-card-foreground border border-border"
+                      : "border border-border bg-card text-card-foreground"
                   }`}
                 >
                   {text || (
@@ -108,8 +117,9 @@ export function ChatPortfolio() {
         }}
         className="sticky bottom-0 pt-2"
       >
-        <div className="flex items-end gap-2 rounded-2xl border border-border bg-card p-2 shadow-sm focus-within:border-foreground/40 transition-colors">
+        <div className="flex items-end gap-2 rounded-2xl border border-border bg-card p-2 shadow-sm transition-colors focus-within:border-foreground/40">
           <textarea
+            ref={textareaRef}
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={(e) => {
