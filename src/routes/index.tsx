@@ -132,12 +132,8 @@ function Index() {
 
 function PaintBackdrop() {
   return (
-    <div aria-hidden className="pointer-events-none absolute inset-0 z-0 overflow-hidden">
-      <div className="absolute -left-40 top-20 h-[520px] w-[520px] rounded-full bg-[radial-gradient(circle_at_center,hsla(300,90%,75%,0.55),transparent_60%)] blur-3xl" />
-      <div className="absolute -right-40 top-40 h-[560px] w-[560px] rounded-full bg-[radial-gradient(circle_at_center,hsla(180,85%,70%,0.55),transparent_60%)] blur-3xl" />
-      <div className="absolute left-1/4 top-[55%] h-[500px] w-[500px] rounded-full bg-[radial-gradient(circle_at_center,hsla(120,80%,70%,0.5),transparent_60%)] blur-3xl" />
-      <div className="absolute right-1/4 bottom-0 h-[480px] w-[480px] rounded-full bg-[radial-gradient(circle_at_center,hsla(35,95%,75%,0.55),transparent_60%)] blur-3xl" />
-      <div className="paper-grain absolute inset-0 opacity-40" />
+    <div aria-hidden className="pointer-events-none absolute inset-0 -z-10 overflow-hidden">
+      <div className="paper-grain absolute inset-0 opacity-30" />
     </div>
   );
 }
