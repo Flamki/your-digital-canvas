@@ -159,15 +159,7 @@ function ChatDrawer({
     <AnimatePresence>
       {open && (
         <>
-          <motion.div
-            key="scrim"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.25 }}
-            onClick={onClose}
-            className="fixed inset-0 z-40 bg-foreground/20 backdrop-blur-sm"
-          />
+
           <motion.div
             key="panel"
             initial={{ opacity: 0, scale: 0.98 }}
