@@ -134,10 +134,12 @@ function Index() {
 function PaintBackdrop() {
   return (
     <div aria-hidden className="pointer-events-none absolute inset-0 -z-10 overflow-hidden">
-      <div className="paper-grain absolute inset-0 opacity-30" />
+      <div className="aurora absolute inset-0 opacity-70" />
+      <div className="paper-grain absolute inset-0 opacity-20" />
     </div>
   );
 }
+
 
 function ChatDrawer({
   open,
