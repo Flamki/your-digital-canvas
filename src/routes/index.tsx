@@ -49,8 +49,7 @@ export const Route = createFileRoute("/")({
     links: [{ rel: "canonical", href: SITE_URL }],
     scripts: [
       {
-        tag: "script",
-        attrs: { type: "application/ld+json" },
+        type: "application/ld+json",
         children: JSON.stringify({
           "@context": "https://schema.org",
           "@graph": [
