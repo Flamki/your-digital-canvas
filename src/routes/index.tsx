@@ -89,7 +89,7 @@ function Index() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.25 }}
           onClick={() => openChat()}
-          className="group mt-8 flex w-full max-w-xl items-center justify-between rounded-full border border-border bg-card/70 px-6 py-4 text-left text-muted-foreground backdrop-blur-md transition-all hover:border-foreground/30 hover:bg-card"
+          className="glass group mt-8 flex w-full max-w-xl items-center justify-between rounded-full px-6 py-4 text-left text-muted-foreground transition-all hover:scale-[1.01]"
         >
           <span className="text-base">Ask me anything…</span>
           <span className="flex h-9 w-9 items-center justify-center rounded-full bg-foreground text-background transition-transform group-hover:scale-105">
@@ -107,13 +107,14 @@ function Index() {
             <button
               key={label}
               onClick={() => openChat(prompt)}
-              className="flex min-w-[92px] flex-col items-center gap-1.5 rounded-2xl border border-border bg-card/70 px-5 py-3 text-sm font-medium text-foreground/90 backdrop-blur-md transition-all hover:-translate-y-0.5 hover:border-foreground/30 hover:bg-card"
+              className="glass flex min-w-[92px] flex-col items-center gap-1.5 rounded-2xl px-5 py-3 text-sm font-medium text-foreground/90 transition-all hover:-translate-y-0.5 hover:scale-[1.03]"
             >
               <Icon className="h-4 w-4 text-foreground/70" />
               {label}
             </button>
           ))}
         </motion.div>
+
 
         <motion.p
           initial={{ opacity: 0 }}
