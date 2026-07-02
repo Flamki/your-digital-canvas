@@ -50,6 +50,9 @@ export function PaintCursor() {
     };
     window.addEventListener("mousemove", onMove);
 
+    // Ambient wandering point so the page has paint before the user moves.
+    let ambientT = 0;
+
     /**
      * Paint one bloom: a big soft radial-gradient circle in a rotating hue.
      * We stamp several offset blooms along the movement path so fast
