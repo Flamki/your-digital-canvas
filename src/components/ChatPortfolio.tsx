@@ -37,15 +37,7 @@ export function ChatPortfolio({ initialPrompt }: { initialPrompt?: string }) {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
   }, [messages, status]);
 
-  // Show only the most recent user question and its assistant reply
-  const lastUserIdx = (() => {
-    for (let i = messages.length - 1; i >= 0; i--) {
-      if (messages[i].role === "user") return i;
-    }
-    return -1;
-  })();
-  const visible = lastUserIdx >= 0 ? messages.slice(lastUserIdx) : [];
-  const lastIsUser = visible.length > 0 && visible[visible.length - 1].role === "user";
+  const lastIsUser = messages.length > 0 && messages[messages.length - 1].role === "user";
   const showThinking = isLoading && lastIsUser;
 
   return (
@@ -66,8 +58,8 @@ export function ChatPortfolio({ initialPrompt }: { initialPrompt?: string }) {
           />
 
           <div className="flex w-full flex-col gap-6">
-            <AnimatePresence mode="wait">
-              {visible.map((m) => {
+            <AnimatePresence initial={false}>
+              {messages.map((m) => {
                 const text = m.parts.map((p) => (p.type === "text" ? p.text : "")).join("");
                 const isUser = m.role === "user";
                 if (isUser) {
@@ -76,7 +68,6 @@ export function ChatPortfolio({ initialPrompt }: { initialPrompt?: string }) {
                       key={m.id}
                       initial={{ opacity: 0, y: 8, scale: 0.96 }}
                       animate={{ opacity: 1, y: 0, scale: 1 }}
-                      exit={{ opacity: 0, y: -8, scale: 0.96 }}
                       transition={{ type: "spring", stiffness: 340, damping: 26 }}
                       className="flex justify-center"
                     >
@@ -91,7 +82,6 @@ export function ChatPortfolio({ initialPrompt }: { initialPrompt?: string }) {
                     key={m.id}
                     initial={{ opacity: 0, y: 6 }}
                     animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0 }}
                     transition={{ duration: 0.3, ease: "easeOut" }}
                     className="w-full whitespace-pre-wrap text-[15px] leading-relaxed text-foreground/90"
                   >
@@ -101,7 +91,13 @@ export function ChatPortfolio({ initialPrompt }: { initialPrompt?: string }) {
               })}
 
               {showThinking && (
-                <motion.div key="thinking" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="w-full">
+                <motion.div
+                  key="thinking"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  className="w-full"
+                >
                   <ThinkingDots />
                 </motion.div>
               )}
@@ -109,7 +105,6 @@ export function ChatPortfolio({ initialPrompt }: { initialPrompt?: string }) {
           </div>
         </div>
       </div>
-
 
       <form
         onSubmit={(e) => {
