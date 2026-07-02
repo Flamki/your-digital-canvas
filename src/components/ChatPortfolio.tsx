@@ -92,8 +92,8 @@ export function ChatPortfolio({ initialPrompt }: { initialPrompt?: string }) {
                 <div
                   className={`max-w-[85%] whitespace-pre-wrap rounded-2xl px-4 py-2.5 text-sm leading-relaxed ${
                     isUser
-                      ? "bg-foreground text-background"
-                      : "border border-border bg-card text-card-foreground"
+                      ? "bg-foreground/90 text-background backdrop-blur-md"
+                      : "glass text-foreground"
                   }`}
                 >
                   {text || (
