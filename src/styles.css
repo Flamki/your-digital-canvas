@@ -114,3 +114,37 @@
   );
   background-size: 22px 22px;
 }
+
+/* Glassmorphism surfaces */
+@utility glass {
+  background: color-mix(in oklch, var(--background) 45%, transparent);
+  backdrop-filter: blur(22px) saturate(180%);
+  border: 1px solid color-mix(in oklch, var(--foreground) 12%, transparent);
+  box-shadow:
+    0 1px 0 0 color-mix(in oklch, white 60%, transparent) inset,
+    0 10px 40px -12px color-mix(in oklch, var(--foreground) 22%, transparent);
+}
+
+@utility glass-strong {
+  background: color-mix(in oklch, var(--background) 62%, transparent);
+  backdrop-filter: blur(28px) saturate(200%);
+  border: 1px solid color-mix(in oklch, var(--foreground) 16%, transparent);
+  box-shadow:
+    0 1px 0 0 color-mix(in oklch, white 70%, transparent) inset,
+    0 20px 60px -20px color-mix(in oklch, var(--foreground) 30%, transparent);
+}
+
+@utility glass-subtle {
+  background: color-mix(in oklch, var(--background) 30%, transparent);
+  backdrop-filter: blur(14px) saturate(160%);
+  border: 1px solid color-mix(in oklch, var(--foreground) 8%, transparent);
+}
+
+/* Ambient colored blobs behind glass */
+@utility aurora {
+  background:
+    radial-gradient(60% 50% at 15% 20%, color-mix(in oklch, oklch(0.75 0.18 260) 55%, transparent), transparent 60%),
+    radial-gradient(50% 40% at 85% 15%, color-mix(in oklch, oklch(0.78 0.16 340) 50%, transparent), transparent 60%),
+    radial-gradient(55% 50% at 80% 85%, color-mix(in oklch, oklch(0.80 0.18 190) 55%, transparent), transparent 60%),
+    radial-gradient(50% 45% at 20% 85%, color-mix(in oklch, oklch(0.82 0.17 90) 50%, transparent), transparent 60%);
+}
