@@ -7,22 +7,83 @@ import GlassSurface from "@/components/GlassSurface";
 import SplashCursor from "@/components/SplashCursor";
 import avatarUrl from "@/assets/ayush-avatar.png";
 
+const SITE_URL = "https://flamki.com";
+const SITE_TITLE = "Ayush S. Singh - Full Stack Developer";
+const SITE_DESCRIPTION =
+  "Portfolio of Ayush S. Singh, a full stack developer building AI tools, web apps, automation systems, and fast product experiments.";
+
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Ayush S. Singh — Full Stack Developer" },
+      { title: SITE_TITLE },
       {
         name: "description",
-        content:
-          "Ayush's portfolio: AI agents, Solana experiments, and shipping small SaaS in public. Ask anything.",
+        content: SITE_DESCRIPTION,
       },
-      { property: "og:title", content: "Ayush S. Singh — Full Stack Developer" },
+      {
+        name: "keywords",
+        content:
+          "Ayush S. Singh, Flamki, full stack developer, AI tools, web apps, automation, React, TypeScript, SaaS, portfolio",
+      },
+      { name: "author", content: "Ayush S. Singh" },
+      { name: "robots", content: "index, follow, max-image-preview:large" },
+      { property: "og:title", content: SITE_TITLE },
       {
         property: "og:description",
-        content: "AI agents, Solana, and building in public. Ask me anything.",
+        content: SITE_DESCRIPTION,
       },
       { property: "og:type", content: "website" },
+      { property: "og:url", content: SITE_URL },
+      { property: "og:site_name", content: "Flamki" },
+      { property: "og:image", content: `${SITE_URL}/og-image.png` },
+      { property: "og:image:width", content: "1200" },
+      { property: "og:image:height", content: "630" },
+      { property: "og:image:alt", content: "Ayush S. Singh - Full Stack Developer" },
+      { property: "og:locale", content: "en_US" },
       { name: "twitter:card", content: "summary_large_image" },
+      { name: "twitter:title", content: SITE_TITLE },
+      { name: "twitter:description", content: SITE_DESCRIPTION },
+      { name: "twitter:image", content: `${SITE_URL}/og-image.png` },
+      { name: "twitter:image:alt", content: "Ayush S. Singh - Full Stack Developer" },
+    ],
+    links: [{ rel: "canonical", href: SITE_URL }],
+    scripts: [
+      {
+        tag: "script",
+        attrs: { type: "application/ld+json" },
+        children: JSON.stringify({
+          "@context": "https://schema.org",
+          "@graph": [
+            {
+              "@type": "Person",
+              "@id": `${SITE_URL}/#person`,
+              name: "Ayush S. Singh",
+              url: SITE_URL,
+              image: `${SITE_URL}/og-image.png`,
+              jobTitle: "Full Stack Developer",
+              description: SITE_DESCRIPTION,
+              knowsAbout: [
+                "Full Stack Development",
+                "React",
+                "TypeScript",
+                "AI Tools",
+                "Automation",
+                "SaaS Products",
+                "Web Applications",
+              ],
+            },
+            {
+              "@type": "WebSite",
+              "@id": `${SITE_URL}/#website`,
+              url: SITE_URL,
+              name: "Flamki",
+              description: SITE_DESCRIPTION,
+              publisher: { "@id": `${SITE_URL}/#person` },
+              inLanguage: "en-US",
+            },
+          ],
+        }),
+      },
     ],
   }),
   component: Index,
@@ -79,14 +140,14 @@ function Index() {
           initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.6, delay: 0.15, type: "spring", bounce: 0.35 }}
-          className="mt-8 md:mt-10"
+          className="flex flex-1 items-center justify-center py-4 md:py-5"
         >
           <img
             src={avatarUrl}
             alt="Ayush avatar"
             width={512}
             height={512}
-            className="h-36 w-56 select-none object-contain drop-shadow-[0_20px_40px_rgba(0,0,0,0.15)] md:h-44 md:w-72"
+            className="h-40 w-64 select-none object-contain drop-shadow-[0_20px_40px_rgba(0,0,0,0.15)] md:h-52 md:w-80"
             draggable={false}
           />
         </motion.div>
@@ -96,7 +157,7 @@ function Index() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.25 }}
           onClick={() => openChat()}
-          className="glass-button group mt-auto w-full max-w-xl text-left text-muted-foreground"
+          className="glass-button group w-full max-w-xl text-left text-muted-foreground"
         >
           <GlassSurface
             width="100%"

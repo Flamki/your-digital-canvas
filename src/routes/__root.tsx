@@ -81,13 +81,24 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       {
         name: "description",
         content:
-          "Ayush's portfolio: AI agents, Solana experiments, and shipping in public. Ask me anything.",
+          "Flamki is the portfolio of Ayush S. Singh, a full stack developer building AI tools, web apps, automation systems, and fast product experiments.",
+      },
+      {
+        name: "keywords",
+        content:
+          "Ayush S. Singh, Flamki, full stack developer, AI developer, web developer, React developer, automation, SaaS builder, portfolio",
       },
       { name: "author", content: "Ayush S. Singh" },
+      { name: "application-name", content: "Flamki" },
+      { name: "robots", content: "index, follow, max-image-preview:large" },
+      { name: "googlebot", content: "index, follow, max-image-preview:large" },
+      { name: "theme-color", content: "#8d54e0" },
     ],
     links: [
       { rel: "stylesheet", href: appCss },
       { rel: "icon", href: "/favicon.png", type: "image/png" },
+      { rel: "apple-touch-icon", href: "/favicon.png" },
+      { rel: "manifest", href: "/site.webmanifest" },
       { rel: "preconnect", href: "https://fonts.googleapis.com" },
       { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
       {

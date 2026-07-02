@@ -1,0 +1,17 @@
+{
+  "name": "Ayush S. Singh - Full Stack Developer",
+  "short_name": "Flamki",
+  "description": "Portfolio of Ayush S. Singh, a full stack developer building AI tools, web apps, automation, and product experiments.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#faf8f3",
+  "theme_color": "#8d54e0",
+  "icons": [
+    {
+      "src": "/favicon.png",
+      "sizes": "256x256",
+      "type": "image/png"
+    }
+  ]
+}
