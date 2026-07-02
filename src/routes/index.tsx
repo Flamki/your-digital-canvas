@@ -174,7 +174,7 @@ function ChatDrawer({
             animate={{ y: 0 }}
             exit={{ y: "100%" }}
             transition={{ type: "spring", stiffness: 320, damping: 32 }}
-            className="fixed inset-x-0 bottom-0 z-50 mx-auto flex h-[85vh] max-w-2xl flex-col rounded-t-3xl border border-border bg-background/95 px-5 pb-4 pt-3 shadow-2xl backdrop-blur-xl md:h-[80vh]"
+            className="glass-strong fixed inset-x-0 bottom-0 z-50 mx-auto flex h-[85vh] max-w-2xl flex-col rounded-t-3xl px-5 pb-4 pt-3 md:h-[80vh]"
           >
             <div className="flex items-center justify-between border-b border-border pb-3">
               <div className="flex items-center gap-2">
