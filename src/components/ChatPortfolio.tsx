@@ -14,7 +14,7 @@ export function ChatPortfolio({ initialPrompt }: { initialPrompt?: string }) {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const seededRef = useRef(false);
 
-  const { messages, sendMessage, status } = useChat({
+  const { messages, sendMessage, setMessages, status } = useChat({
     transport: new DefaultChatTransport({ api: "/api/chat" }),
   });
 
@@ -25,6 +25,7 @@ export function ChatPortfolio({ initialPrompt }: { initialPrompt?: string }) {
     if (!value || isLoading) return;
     setShineKey((key) => key + 1);
     setInput("");
+    setMessages([]);
     await sendMessage({ text: value });
   };
 
