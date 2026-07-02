@@ -145,11 +145,3 @@
   border: 1px solid color-mix(in oklch, var(--foreground) 8%, transparent);
 }
 
-/* Ambient colored blobs behind glass */
-@utility aurora {
-  background:
-    radial-gradient(60% 50% at 15% 20%, color-mix(in oklch, oklch(0.75 0.18 260) 55%, transparent), transparent 60%),
-    radial-gradient(50% 40% at 85% 15%, color-mix(in oklch, oklch(0.78 0.16 340) 50%, transparent), transparent 60%),
-    radial-gradient(55% 50% at 80% 85%, color-mix(in oklch, oklch(0.80 0.18 190) 55%, transparent), transparent 60%),
-    radial-gradient(50% 45% at 20% 85%, color-mix(in oklch, oklch(0.82 0.17 90) 50%, transparent), transparent 60%);
-}

@@ -134,7 +134,6 @@ function Index() {
 function PaintBackdrop() {
   return (
     <div aria-hidden className="pointer-events-none absolute inset-0 -z-10 overflow-hidden">
-      <div className="aurora absolute inset-0 opacity-70" />
       <div className="paper-grain absolute inset-0 opacity-20" />
     </div>
   );
@@ -169,7 +168,6 @@ function ChatDrawer({
             className="fixed inset-0 z-50 flex flex-col bg-background"
           >
             <div aria-hidden className="pointer-events-none absolute inset-0 -z-10 overflow-hidden">
-              <div className="aurora absolute inset-0 opacity-60" />
               <div className="paper-grain absolute inset-0 opacity-20" />
             </div>
             <div className="flex items-center justify-end px-4 pt-4">
