@@ -117,7 +117,7 @@ export function ChatPortfolio({ initialPrompt }: { initialPrompt?: string }) {
         }}
         className="sticky bottom-0 pt-2"
       >
-        <div className="flex items-end gap-2 rounded-2xl border border-border bg-card p-2 shadow-sm transition-colors focus-within:border-foreground/40">
+        <div className="glass-strong flex items-end gap-2 rounded-2xl p-2 transition-colors focus-within:ring-2 focus-within:ring-foreground/20">
           <textarea
             ref={textareaRef}
             value={input}
