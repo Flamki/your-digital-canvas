@@ -89,7 +89,7 @@ function Index() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.25 }}
           onClick={() => openChat()}
-          className="group mt-8 flex w-full max-w-xl items-center justify-between rounded-full border border-border bg-card/70 px-6 py-4 text-left text-muted-foreground backdrop-blur-md transition-all hover:border-foreground/30 hover:bg-card"
+          className="glass group mt-8 flex w-full max-w-xl items-center justify-between rounded-full px-6 py-4 text-left text-muted-foreground transition-all hover:scale-[1.01]"
         >
           <span className="text-base">Ask me anything…</span>
           <span className="flex h-9 w-9 items-center justify-center rounded-full bg-foreground text-background transition-transform group-hover:scale-105">
@@ -107,13 +107,14 @@ function Index() {
             <button
               key={label}
               onClick={() => openChat(prompt)}
-              className="flex min-w-[92px] flex-col items-center gap-1.5 rounded-2xl border border-border bg-card/70 px-5 py-3 text-sm font-medium text-foreground/90 backdrop-blur-md transition-all hover:-translate-y-0.5 hover:border-foreground/30 hover:bg-card"
+              className="glass flex min-w-[92px] flex-col items-center gap-1.5 rounded-2xl px-5 py-3 text-sm font-medium text-foreground/90 transition-all hover:-translate-y-0.5 hover:scale-[1.03]"
             >
               <Icon className="h-4 w-4 text-foreground/70" />
               {label}
             </button>
           ))}
         </motion.div>
+
 
         <motion.p
           initial={{ opacity: 0 }}
@@ -133,10 +134,12 @@ function Index() {
 function PaintBackdrop() {
   return (
     <div aria-hidden className="pointer-events-none absolute inset-0 -z-10 overflow-hidden">
-      <div className="paper-grain absolute inset-0 opacity-30" />
+      <div className="aurora absolute inset-0 opacity-70" />
+      <div className="paper-grain absolute inset-0 opacity-20" />
     </div>
   );
 }
+
 
 function ChatDrawer({
   open,
@@ -171,7 +174,7 @@ function ChatDrawer({
             animate={{ y: 0 }}
             exit={{ y: "100%" }}
             transition={{ type: "spring", stiffness: 320, damping: 32 }}
-            className="fixed inset-x-0 bottom-0 z-50 mx-auto flex h-[85vh] max-w-2xl flex-col rounded-t-3xl border border-border bg-background/95 px-5 pb-4 pt-3 shadow-2xl backdrop-blur-xl md:h-[80vh]"
+            className="glass-strong fixed inset-x-0 bottom-0 z-50 mx-auto flex h-[85vh] max-w-2xl flex-col rounded-t-3xl px-5 pb-4 pt-3 md:h-[80vh]"
           >
             <div className="flex items-center justify-between border-b border-border pb-3">
               <div className="flex items-center gap-2">

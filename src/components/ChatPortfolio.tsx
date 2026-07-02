@@ -67,7 +67,7 @@ export function ChatPortfolio({ initialPrompt }: { initialPrompt?: string }) {
                   <button
                     key={s}
                     onClick={() => submit(s)}
-                    className="rounded-full border border-border bg-card px-3 py-1.5 text-xs text-foreground/80 transition-all hover:border-foreground/30 hover:bg-accent"
+                    className="glass rounded-full px-3 py-1.5 text-xs text-foreground/80 transition-all hover:scale-[1.03]"
                   >
                     {s}
                   </button>
@@ -92,8 +92,8 @@ export function ChatPortfolio({ initialPrompt }: { initialPrompt?: string }) {
                 <div
                   className={`max-w-[85%] whitespace-pre-wrap rounded-2xl px-4 py-2.5 text-sm leading-relaxed ${
                     isUser
-                      ? "bg-foreground text-background"
-                      : "border border-border bg-card text-card-foreground"
+                      ? "bg-foreground/90 text-background backdrop-blur-md"
+                      : "glass text-foreground"
                   }`}
                 >
                   {text || (
@@ -117,7 +117,7 @@ export function ChatPortfolio({ initialPrompt }: { initialPrompt?: string }) {
         }}
         className="sticky bottom-0 pt-2"
       >
-        <div className="flex items-end gap-2 rounded-2xl border border-border bg-card p-2 shadow-sm transition-colors focus-within:border-foreground/40">
+        <div className="glass-strong flex items-end gap-2 rounded-2xl p-2 transition-colors focus-within:ring-2 focus-within:ring-foreground/20">
           <textarea
             ref={textareaRef}
             value={input}
