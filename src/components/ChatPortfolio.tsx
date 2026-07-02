@@ -2,10 +2,34 @@ import { useChat } from "@ai-sdk/react";
 import { DefaultChatTransport } from "ai";
 import { motion, AnimatePresence } from "motion/react";
 import { Fragment, useEffect, useRef, useState, type ReactNode } from "react";
-import { ArrowUp, ChevronDown } from "lucide-react";
+import {
+  ArrowUp,
+  Briefcase,
+  ChevronDown,
+  Layers,
+  PartyPopper,
+  Smile,
+  UserSearch,
+} from "lucide-react";
 import BorderGlow from "@/components/BorderGlow";
 import GlassSurface from "@/components/GlassSurface";
 import avatarUrl from "@/assets/ayush-avatar.png";
+
+const CHAT_SUGGESTIONS = [
+  { label: "Me", icon: Smile, prompt: "Who are you? I want to know more about you." },
+  {
+    label: "Projects",
+    icon: Briefcase,
+    prompt: "What are your projects? What are you working on right now?",
+  },
+  {
+    label: "Skills",
+    icon: Layers,
+    prompt: "What are your skills? Give me a list of your soft and hard skills.",
+  },
+  { label: "Fun", icon: PartyPopper, prompt: "Tell me something fun about you." },
+  { label: "Contact", icon: UserSearch, prompt: "How can I contact you?" },
+];
 
 export function ChatPortfolio({ initialPrompt }: { initialPrompt?: string }) {
   const [input, setInput] = useState("");
@@ -125,6 +149,44 @@ export function ChatPortfolio({ initialPrompt }: { initialPrompt?: string }) {
         }}
         className="absolute inset-x-0 bottom-4 px-4"
       >
+        <AnimatePresence>
+          {!input.trim() && !isLoading && (
+            <motion.div
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 8 }}
+              transition={{ duration: 0.2 }}
+              className="mx-auto mb-3 flex max-w-2xl flex-wrap items-center justify-center gap-2"
+            >
+              {CHAT_SUGGESTIONS.map(({ label, icon: Icon, prompt }) => (
+                <button
+                  key={label}
+                  type="button"
+                  onClick={() => submit(prompt)}
+                  className="glass-button text-sm font-medium text-foreground/90"
+                  aria-label={prompt}
+                >
+                  <GlassSurface
+                    width="100%"
+                    height={44}
+                    borderRadius={999}
+                    backgroundOpacity={0.07}
+                    saturation={1.65}
+                    distortionScale={-100}
+                    redOffset={3}
+                    greenOffset={8}
+                    blueOffset={14}
+                    contentClassName="gap-2 px-4"
+                  >
+                    <Icon className="h-4 w-4 text-foreground/70" />
+                    <span>{label}</span>
+                  </GlassSurface>
+                </button>
+              ))}
+            </motion.div>
+          )}
+        </AnimatePresence>
+
         <BorderGlow
           className="chat-input-glow mx-auto max-w-xl rounded-full"
           borderRadius={999}
