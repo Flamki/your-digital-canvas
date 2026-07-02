@@ -67,7 +67,7 @@ export function ChatPortfolio({ initialPrompt }: { initialPrompt?: string }) {
                   <button
                     key={s}
                     onClick={() => submit(s)}
-                    className="rounded-full border border-border bg-card px-3 py-1.5 text-xs text-foreground/80 transition-all hover:border-foreground/30 hover:bg-accent"
+                    className="glass rounded-full px-3 py-1.5 text-xs text-foreground/80 transition-all hover:scale-[1.03]"
                   >
                     {s}
                   </button>
