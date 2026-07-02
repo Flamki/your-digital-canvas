@@ -1,7 +1,7 @@
 import { useChat } from "@ai-sdk/react";
 import { DefaultChatTransport } from "ai";
 import { motion, AnimatePresence } from "motion/react";
-import { useEffect, useRef, useState } from "react";
+import { Fragment, useEffect, useRef, useState, type ReactNode } from "react";
 import { ArrowUp, ChevronDown } from "lucide-react";
 import BorderGlow from "@/components/BorderGlow";
 import GlassSurface from "@/components/GlassSurface";
@@ -95,9 +95,9 @@ export function ChatPortfolio({ initialPrompt }: { initialPrompt?: string }) {
                     initial={{ opacity: 0, y: 6 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.3, ease: "easeOut" }}
-                    className="w-full whitespace-pre-wrap text-[15px] leading-relaxed text-foreground/90"
+                    className="w-full"
                   >
-                    {text || <ThinkingDots />}
+                    {text ? <AssistantMessage text={text} /> : <ThinkingDots />}
                   </motion.div>
                 );
               })}
@@ -185,6 +185,179 @@ export function ChatPortfolio({ initialPrompt }: { initialPrompt?: string }) {
       </form>
     </div>
   );
+}
+
+function AssistantMessage({ text }: { text: string }) {
+  const blocks = toMarkdownBlocks(text);
+
+  return (
+    <div className="mx-auto w-full max-w-2xl space-y-4 text-[15px] leading-relaxed text-foreground/90">
+      {blocks.map((block, index) => {
+        if (block.type === "heading") {
+          return (
+            <h2
+              key={index}
+              className="pt-1 text-2xl font-bold leading-tight text-foreground md:text-3xl"
+            >
+              {renderInline(block.text)}
+            </h2>
+          );
+        }
+
+        if (block.type === "subheading") {
+          return (
+            <h3 key={index} className="pt-2 text-lg font-semibold leading-snug text-foreground">
+              {renderInline(block.text)}
+            </h3>
+          );
+        }
+
+        if (block.type === "list") {
+          return (
+            <ul key={index} className="space-y-2">
+              {block.items.map((item, itemIndex) => (
+                <li key={itemIndex} className="flex gap-3">
+                  <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-chat-user" />
+                  <span className="min-w-0">{renderInline(item)}</span>
+                </li>
+              ))}
+            </ul>
+          );
+        }
+
+        return (
+          <p key={index} className="text-pretty">
+            {renderInline(block.text)}
+          </p>
+        );
+      })}
+    </div>
+  );
+}
+
+type MarkdownBlock =
+  | { type: "heading"; text: string }
+  | { type: "subheading"; text: string }
+  | { type: "paragraph"; text: string }
+  | { type: "list"; items: string[] };
+
+function toMarkdownBlocks(text: string): MarkdownBlock[] {
+  const blocks: MarkdownBlock[] = [];
+  const lines = text.split(/\r?\n/);
+  let paragraph: string[] = [];
+  let list: string[] = [];
+
+  const flushParagraph = () => {
+    if (!paragraph.length) return;
+    blocks.push({ type: "paragraph", text: paragraph.join(" ") });
+    paragraph = [];
+  };
+
+  const flushList = () => {
+    if (!list.length) return;
+    blocks.push({ type: "list", items: list });
+    list = [];
+  };
+
+  for (const rawLine of lines) {
+    const line = rawLine.trim();
+
+    if (!line) {
+      flushParagraph();
+      flushList();
+      continue;
+    }
+
+    if (line.startsWith("### ")) {
+      flushParagraph();
+      flushList();
+      blocks.push({ type: "subheading", text: line.slice(4).trim() });
+      continue;
+    }
+
+    if (line.startsWith("## ")) {
+      flushParagraph();
+      flushList();
+      blocks.push({ type: "heading", text: line.slice(3).trim() });
+      continue;
+    }
+
+    if (/^[-*]\s+/.test(line)) {
+      flushParagraph();
+      list.push(line.replace(/^[-*]\s+/, ""));
+      continue;
+    }
+
+    if (/^\d+\.\s+/.test(line)) {
+      flushParagraph();
+      list.push(line.replace(/^\d+\.\s+/, ""));
+      continue;
+    }
+
+    flushList();
+    paragraph.push(line);
+  }
+
+  flushParagraph();
+  flushList();
+
+  return blocks;
+}
+
+function renderInline(text: string): ReactNode[] {
+  const nodes: ReactNode[] = [];
+  const pattern = /(\*\*[^*]+\*\*|\[[^\]]+\]\([^)]+\)|`[^`]+`)/g;
+  let lastIndex = 0;
+
+  for (const match of text.matchAll(pattern)) {
+    if (match.index > lastIndex) {
+      nodes.push(text.slice(lastIndex, match.index));
+    }
+
+    const token = match[0];
+
+    if (token.startsWith("**")) {
+      nodes.push(
+        <strong key={nodes.length} className="font-semibold text-foreground">
+          {token.slice(2, -2)}
+        </strong>,
+      );
+    } else if (token.startsWith("[")) {
+      const linkMatch = token.match(/^\[([^\]]+)\]\(([^)]+)\)$/);
+      if (linkMatch) {
+        nodes.push(
+          <a
+            key={nodes.length}
+            href={linkMatch[2]}
+            target="_blank"
+            rel="noreferrer"
+            className="font-medium text-chat-user underline decoration-chat-user/35 underline-offset-4 transition-colors hover:text-chat-user/80"
+          >
+            {linkMatch[1]}
+          </a>,
+        );
+      } else {
+        nodes.push(token);
+      }
+    } else {
+      nodes.push(
+        <code
+          key={nodes.length}
+          className="rounded-md bg-foreground/[0.07] px-1.5 py-0.5 text-[0.92em] text-foreground"
+        >
+          {token.slice(1, -1)}
+        </code>,
+      );
+    }
+
+    lastIndex = match.index + token.length;
+  }
+
+  if (lastIndex < text.length) {
+    nodes.push(text.slice(lastIndex));
+  }
+
+  return nodes.map((node, index) => <Fragment key={index}>{node}</Fragment>);
 }
 
 function UserMessage({ text }: { text: string }) {
