@@ -3,19 +3,20 @@ import { AnimatePresence, motion } from "motion/react";
 import { ArrowRight, Briefcase, Layers, PartyPopper, Smile, UserSearch, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import { ChatPortfolio } from "@/components/ChatPortfolio";
+import GlassSurface from "@/components/GlassSurface";
 import SplashCursor from "@/components/SplashCursor";
 import avatarUrl from "@/assets/ayush-avatar.png";
 
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Ayush S. Singh — AI Engineer & Builder" },
+      { title: "Ayush S. Singh — Full Stack Developer" },
       {
         name: "description",
         content:
           "Ayush's portfolio: AI agents, Solana experiments, and shipping small SaaS in public. Ask anything.",
       },
-      { property: "og:title", content: "Ayush S. Singh — AI Engineer" },
+      { property: "og:title", content: "Ayush S. Singh — Full Stack Developer" },
       {
         property: "og:description",
         content: "AI agents, Solana, and building in public. Ask me anything.",
@@ -45,7 +46,7 @@ function Index() {
   };
 
   return (
-    <div className="relative min-h-screen overflow-hidden">
+    <div className="relative h-dvh overflow-hidden">
       <PaintBackdrop />
       <SplashCursor
         DENSITY_DISSIPATION={1}
@@ -55,7 +56,7 @@ function Index() {
         SHADING={false}
       />
 
-      <main className="relative z-10 mx-auto flex min-h-screen max-w-3xl flex-col items-center px-6 pt-16 pb-8 md:pt-24">
+      <main className="relative z-10 mx-auto flex h-dvh max-w-3xl flex-col items-center px-6 pb-5 pt-[9vh] md:pt-[10vh]">
         <motion.p
           initial={{ opacity: 0, y: -8 }}
           animate={{ opacity: 1, y: 0 }}
@@ -69,23 +70,23 @@ function Index() {
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.05 }}
-          className="font-display mt-2 text-center text-6xl font-bold leading-[1] tracking-tight text-foreground md:text-8xl"
+          className="font-display mt-2 text-center text-5xl font-bold leading-[1] tracking-tight text-foreground md:text-8xl"
         >
-          AI Engineer
+          Full Stack Developer
         </motion.h1>
 
         <motion.div
           initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.6, delay: 0.15, type: "spring", bounce: 0.35 }}
-          className="mt-8"
+          className="mt-8 md:mt-10"
         >
           <img
             src={avatarUrl}
             alt="Ayush avatar"
             width={512}
             height={512}
-            className="h-44 w-44 select-none drop-shadow-[0_20px_40px_rgba(0,0,0,0.15)] md:h-56 md:w-56"
+            className="h-36 w-56 select-none object-contain drop-shadow-[0_20px_40px_rgba(0,0,0,0.15)] md:h-44 md:w-72"
             draggable={false}
           />
         </motion.div>
@@ -95,28 +96,54 @@ function Index() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.25 }}
           onClick={() => openChat()}
-          className="glass group mt-8 flex w-full max-w-xl items-center justify-between rounded-full px-6 py-4 text-left text-muted-foreground transition-all hover:scale-[1.01]"
+          className="glass-button group mt-auto w-full max-w-xl text-left text-muted-foreground"
         >
-          <span className="text-base">Ask me anything…</span>
-          <span className="flex h-9 w-9 items-center justify-center rounded-full bg-foreground text-background transition-transform group-hover:scale-105">
-            <ArrowRight className="h-4 w-4" />
-          </span>
+          <GlassSurface
+            width="100%"
+            height={68}
+            borderRadius={999}
+            backgroundOpacity={0.08}
+            saturation={1.85}
+            distortionScale={-135}
+            redOffset={4}
+            greenOffset={12}
+            blueOffset={22}
+            contentClassName="justify-between px-6"
+          >
+            <span className="text-base">Ask me anything…</span>
+            <span className="flex h-9 w-9 items-center justify-center rounded-full bg-foreground text-background transition-transform group-hover:scale-105">
+              <ArrowRight className="h-4 w-4" />
+            </span>
+          </GlassSurface>
         </motion.button>
 
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.35 }}
-          className="mt-6 flex w-full max-w-2xl flex-wrap items-center justify-center gap-3"
+          className="mb-1 mt-5 flex w-full max-w-2xl flex-wrap items-center justify-center gap-3"
         >
           {QUICK_ACTIONS.map(({ label, icon: Icon, prompt }) => (
             <button
               key={label}
               onClick={() => openChat(prompt)}
-              className="glass flex min-w-[92px] flex-col items-center gap-1.5 rounded-2xl px-5 py-3 text-sm font-medium text-foreground/90 transition-all hover:-translate-y-0.5 hover:scale-[1.03]"
+              className="glass-button min-w-[92px] text-sm font-medium text-foreground/90"
             >
-              <Icon className="h-4 w-4 text-foreground/70" />
-              {label}
+              <GlassSurface
+                width="100%"
+                height={68}
+                borderRadius={18}
+                backgroundOpacity={0.075}
+                saturation={1.75}
+                distortionScale={-120}
+                redOffset={3}
+                greenOffset={10}
+                blueOffset={18}
+                contentClassName="flex-col gap-1.5 px-5 py-3"
+              >
+                <Icon className="h-4 w-4 text-foreground/70" />
+                {label}
+              </GlassSurface>
             </button>
           ))}
         </motion.div>
@@ -135,7 +162,6 @@ function PaintBackdrop() {
     </div>
   );
 }
-
 
 function ChatDrawer({
   open,
@@ -175,10 +201,19 @@ function ChatDrawer({
             <div className="flex items-center justify-end px-3 pb-2">
               <button
                 onClick={onClose}
-                className="flex h-8 w-8 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
+                className="glass-button text-muted-foreground transition-colors hover:text-foreground"
                 aria-label="Close chat"
               >
-                <X className="h-4 w-4" />
+                <GlassSurface
+                  width={36}
+                  height={36}
+                  borderRadius={999}
+                  backgroundOpacity={0.06}
+                  saturation={1.6}
+                  distortionScale={-110}
+                >
+                  <X className="h-4 w-4" />
+                </GlassSurface>
               </button>
             </div>
             <div className="min-h-0 flex-1">
