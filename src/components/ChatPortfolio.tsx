@@ -77,6 +77,7 @@ export function ChatPortfolio({ initialPrompt }: { initialPrompt?: string }) {
 
   const lastIsUser = messages.length > 0 && messages[messages.length - 1].role === "user";
   const showThinking = isLoading && lastIsUser;
+  const hasAssistantResponse = messages.some((message) => message.role === "assistant");
 
   return (
     <div className="relative flex h-full flex-col">
@@ -101,6 +102,8 @@ export function ChatPortfolio({ initialPrompt }: { initialPrompt?: string }) {
                 const text = m.parts.map((p) => (p.type === "text" ? p.text : "")).join("");
                 const isUser = m.role === "user";
                 if (isUser) {
+                  if (hasAssistantResponse) return null;
+
                   return (
                     <motion.div
                       key={m.id}
