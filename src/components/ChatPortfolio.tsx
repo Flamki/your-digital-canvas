@@ -6,6 +6,7 @@ import {
   ArrowUp,
   Briefcase,
   ChevronDown,
+  ExternalLink,
   Layers,
   PartyPopper,
   Smile,
@@ -371,7 +372,7 @@ function toMarkdownBlocks(text: string): MarkdownBlock[] {
 
 function renderInline(text: string): ReactNode[] {
   const nodes: ReactNode[] = [];
-  const pattern = /(\*\*[^*]+\*\*|\[[^\]]+\]\([^)]+\)|`[^`]+`)/g;
+  const pattern = /(\*\*[^*]+\*\*|\[[^\]]+\]\([^)]+\)|`[^`]+`|https?:\/\/[^\s)]+)/g;
   let lastIndex = 0;
 
   for (const match of text.matchAll(pattern)) {
@@ -390,21 +391,11 @@ function renderInline(text: string): ReactNode[] {
     } else if (token.startsWith("[")) {
       const linkMatch = token.match(/^\[([^\]]+)\]\(([^)]+)\)$/);
       if (linkMatch) {
-        nodes.push(
-          <a
-            key={nodes.length}
-            href={linkMatch[2]}
-            target="_blank"
-            rel="noreferrer"
-            className="font-medium text-chat-user underline decoration-chat-user/35 underline-offset-4 transition-colors hover:text-chat-user/80"
-          >
-            {linkMatch[1]}
-          </a>,
-        );
+        nodes.push(<GlassLink key={nodes.length} href={linkMatch[2]} label={linkMatch[1]} />);
       } else {
         nodes.push(token);
       }
-    } else {
+    } else if (token.startsWith("`")) {
       nodes.push(
         <code
           key={nodes.length}
@@ -413,6 +404,10 @@ function renderInline(text: string): ReactNode[] {
           {token.slice(1, -1)}
         </code>,
       );
+    } else {
+      const { href, trailing } = normalizeUrlToken(token);
+      nodes.push(<GlassLink key={nodes.length} href={href} label={getLinkLabel(href)} />);
+      if (trailing) nodes.push(trailing);
     }
 
     lastIndex = match.index + token.length;
@@ -423,6 +418,39 @@ function renderInline(text: string): ReactNode[] {
   }
 
   return nodes.map((node, index) => <Fragment key={index}>{node}</Fragment>);
+}
+
+function GlassLink({ href, label }: { href: string; label: string }) {
+  return (
+    <a
+      href={href}
+      target="_blank"
+      rel="noreferrer"
+      className="mx-1 my-1 inline-flex max-w-full items-center gap-2 rounded-full border border-white/60 bg-white/35 px-3 py-1.5 text-sm font-semibold text-foreground shadow-[0_8px_28px_-20px_rgba(0,0,0,0.55)] backdrop-blur-xl transition hover:-translate-y-0.5 hover:bg-white/50 hover:shadow-[0_14px_34px_-22px_rgba(0,0,0,0.75)]"
+    >
+      <span className="min-w-0 truncate">{label}</span>
+      <ExternalLink className="h-3.5 w-3.5 shrink-0 text-foreground/65" />
+    </a>
+  );
+}
+
+function normalizeUrlToken(token: string) {
+  const match = token.match(/^(https?:\/\/.*?)([.,!?;:]*)$/);
+  return {
+    href: match?.[1] ?? token,
+    trailing: match?.[2] ?? "",
+  };
+}
+
+function getLinkLabel(href: string) {
+  try {
+    const url = new URL(href);
+    const host = url.hostname.replace(/^www\./, "");
+    const firstPath = url.pathname.split("/").filter(Boolean)[0];
+    return firstPath ? `${host}/${firstPath}` : host;
+  } catch {
+    return href;
+  }
 }
 
 function UserMessage({ text }: { text: string }) {

@@ -33,7 +33,10 @@ export const Route = createFileRoute("/api/chat")({
           messages: await convertToModelMessages(messages),
         });
 
-        return result.toUIMessageStreamResponse({ originalMessages: messages });
+        return result.toUIMessageStreamResponse({
+          originalMessages: messages,
+          sendReasoning: false,
+        });
       },
     },
   },
