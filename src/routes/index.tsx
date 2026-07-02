@@ -159,27 +159,23 @@ function ChatDrawer({
     <AnimatePresence>
       {open && (
         <>
-          <motion.div
-            key="scrim"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.25 }}
-            onClick={onClose}
-            className="fixed inset-0 z-40 bg-foreground/20 backdrop-blur-sm"
-          />
+
           <motion.div
             key="panel"
-            initial={{ y: "100%" }}
-            animate={{ y: 0 }}
-            exit={{ y: "100%" }}
-            transition={{ type: "spring", stiffness: 320, damping: 32 }}
-            className="glass-strong fixed inset-x-0 bottom-0 z-50 mx-auto flex h-[88vh] max-w-2xl flex-col rounded-t-3xl px-2 pb-2 pt-3 md:h-[85vh]"
+            initial={{ opacity: 0, scale: 0.98 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.98 }}
+            transition={{ duration: 0.3, ease: "easeOut" }}
+            className="fixed inset-0 z-50 flex flex-col bg-background"
           >
-            <div className="flex items-center justify-end px-3 pb-2">
+            <div aria-hidden className="pointer-events-none absolute inset-0 -z-10 overflow-hidden">
+              <div className="aurora absolute inset-0 opacity-60" />
+              <div className="paper-grain absolute inset-0 opacity-20" />
+            </div>
+            <div className="flex items-center justify-end px-4 pt-4">
               <button
                 onClick={onClose}
-                className="flex h-8 w-8 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
+                className="glass flex h-10 w-10 items-center justify-center rounded-full text-muted-foreground transition-colors hover:text-foreground"
                 aria-label="Close chat"
               >
                 <X className="h-4 w-4" />
