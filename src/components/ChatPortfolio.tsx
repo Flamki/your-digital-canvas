@@ -113,7 +113,7 @@ export function ChatPortfolio({ initialPrompt }: { initialPrompt?: string }) {
         }}
         className="absolute inset-x-0 bottom-4 px-4"
       >
-        <div className="glass-strong mx-auto flex max-w-xl items-center gap-2 rounded-full py-1.5 pl-6 pr-1.5 transition-colors focus-within:ring-2 focus-within:ring-chat-user/40">
+        <div className="mx-auto flex max-w-xl items-center gap-2 rounded-full border border-border/80 bg-background/95 py-1.5 pl-6 pr-1.5 shadow-[0_8px_30px_-18px_rgba(0,0,0,0.35)] transition-colors focus-within:border-chat-user/35 focus-within:ring-2 focus-within:ring-chat-user/20">
           <textarea
             ref={textareaRef}
             value={input}
@@ -131,7 +131,7 @@ export function ChatPortfolio({ initialPrompt }: { initialPrompt?: string }) {
           <button
             type="submit"
             disabled={isLoading || !input.trim()}
-            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-chat-user text-chat-user-foreground shadow-[0_6px_20px_-6px_color-mix(in_oklch,var(--chat-user)_70%,transparent)] transition-all hover:scale-105 disabled:opacity-40 disabled:hover:scale-100"
+            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-foreground text-background shadow-[0_6px_20px_-10px_rgba(0,0,0,0.55)] transition-all hover:scale-105 disabled:opacity-100 disabled:hover:scale-100"
             aria-label="Send"
           >
             <ArrowUp className="h-4 w-4" />

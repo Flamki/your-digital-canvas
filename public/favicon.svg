@@ -1,0 +1,47 @@
+<svg width="64" height="64" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="64" height="64" rx="16" fill="#0b0714"/>
+  <defs>
+    <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="2.6" result="blur"/>
+      <feColorMatrix
+        in="blur"
+        type="matrix"
+        values="1 0 0 0 0 0 1 0 0 0 0 0 1 0 0 0 0 0 1.8 0"
+        result="glow"
+      />
+      <feMerge>
+        <feMergeNode in="glow"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+    <linearGradient id="strand-a" x1="7" y1="18" x2="58" y2="46" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#F97316"/>
+      <stop offset="0.5" stop-color="#7C3AED"/>
+      <stop offset="1" stop-color="#06B6D4"/>
+    </linearGradient>
+    <linearGradient id="strand-b" x1="6" y1="46" x2="58" y2="16" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#06B6D4"/>
+      <stop offset="0.55" stop-color="#7C3AED"/>
+      <stop offset="1" stop-color="#F97316"/>
+    </linearGradient>
+  </defs>
+  <g filter="url(#glow)" stroke-linecap="round">
+    <path
+      d="M8 22C17 6 27 51 36 33C44 17 50 17 57 27"
+      stroke="url(#strand-a)"
+      stroke-width="5.5"
+    />
+    <path
+      d="M7 42C16 53 24 14 34 30C42 43 50 47 58 35"
+      stroke="url(#strand-b)"
+      stroke-width="4.5"
+      opacity="0.92"
+    />
+    <path
+      d="M13 32C22 25 27 25 34 35C41 45 49 39 53 25"
+      stroke="#ffffff"
+      stroke-width="1.6"
+      opacity="0.55"
+    />
+  </g>
+</svg>

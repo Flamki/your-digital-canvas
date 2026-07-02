@@ -3,7 +3,7 @@ import { AnimatePresence, motion } from "motion/react";
 import { ArrowRight, Briefcase, Layers, PartyPopper, Smile, UserSearch, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import { ChatPortfolio } from "@/components/ChatPortfolio";
-import { PaintCursor } from "@/components/PaintCursor";
+import SplashCursor from "@/components/SplashCursor";
 import avatarUrl from "@/assets/ayush-avatar.png";
 
 export const Route = createFileRoute("/")({
@@ -47,7 +47,13 @@ function Index() {
   return (
     <div className="relative min-h-screen overflow-hidden">
       <PaintBackdrop />
-      <PaintCursor />
+      <SplashCursor
+        DENSITY_DISSIPATION={1}
+        VELOCITY_DISSIPATION={0.5}
+        PRESSURE={0.6}
+        COLOR_UPDATE_SPEED={27}
+        SHADING={false}
+      />
 
       <main className="relative z-10 mx-auto flex min-h-screen max-w-3xl flex-col items-center px-6 pt-16 pb-8 md:pt-24">
         <motion.p
@@ -114,16 +120,6 @@ function Index() {
             </button>
           ))}
         </motion.div>
-
-
-        <motion.p
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.6 }}
-          className="mt-auto pt-16 text-xs text-muted-foreground"
-        >
-          Built by Ayush · powered by Lovable AI
-        </motion.p>
       </main>
 
       <ChatDrawer open={chatOpen} onClose={() => setChatOpen(false)} initialPrompt={seed} />
@@ -174,7 +170,7 @@ function ChatDrawer({
             animate={{ y: 0 }}
             exit={{ y: "100%" }}
             transition={{ type: "spring", stiffness: 320, damping: 32 }}
-            className="glass-strong fixed inset-x-0 bottom-0 z-50 mx-auto flex h-[88vh] max-w-2xl flex-col rounded-t-3xl px-2 pb-2 pt-3 md:h-[85vh]"
+            className="glass-strong fixed inset-0 z-50 flex h-dvh w-screen flex-col px-2 pb-2 pt-3"
           >
             <div className="flex items-center justify-end px-3 pb-2">
               <button
