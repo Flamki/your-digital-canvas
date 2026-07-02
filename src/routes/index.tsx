@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { motion } from "motion/react";
-import { Briefcase, Layers, PartyPopper, Smile, UserSearch } from "lucide-react";
+import { AnimatePresence, motion } from "motion/react";
+import { ArrowRight, Briefcase, Layers, PartyPopper, Smile, UserSearch, X } from "lucide-react";
+import { useEffect, useState } from "react";
 import { ChatPortfolio } from "@/components/ChatPortfolio";
 import { PaintCursor } from "@/components/PaintCursor";
 import avatarUrl from "@/assets/ayush-avatar.png";
@@ -45,13 +46,10 @@ function Index() {
 
   return (
     <div className="relative min-h-screen overflow-hidden">
-      {/* Paint background — always on */}
       <PaintBackdrop />
-      {/* Foreground paint trail that follows cursor */}
       <PaintCursor />
 
       <main className="relative z-10 mx-auto flex min-h-screen max-w-3xl flex-col items-center px-6 pt-16 pb-8 md:pt-24">
-        {/* Greeting */}
         <motion.p
           initial={{ opacity: 0, y: -8 }}
           animate={{ opacity: 1, y: 0 }}
@@ -70,7 +68,6 @@ function Index() {
           AI Engineer
         </motion.h1>
 
-        {/* Avatar */}
         <motion.div
           initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
@@ -80,12 +77,13 @@ function Index() {
           <img
             src={avatarUrl}
             alt="Ayush avatar"
+            width={512}
+            height={512}
             className="h-44 w-44 select-none drop-shadow-[0_20px_40px_rgba(0,0,0,0.15)] md:h-56 md:w-56"
             draggable={false}
           />
         </motion.div>
 
-        {/* Ask input (opens chat drawer) */}
         <motion.button
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
@@ -99,7 +97,6 @@ function Index() {
           </span>
         </motion.button>
 
-        {/* Quick action pills */}
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
@@ -118,7 +115,6 @@ function Index() {
           ))}
         </motion.div>
 
-        {/* Footer signature */}
         <motion.p
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
@@ -129,16 +125,11 @@ function Index() {
         </motion.p>
       </main>
 
-      {/* Chat drawer */}
       <ChatDrawer open={chatOpen} onClose={() => setChatOpen(false)} initialPrompt={seed} />
     </div>
   );
 }
 
-/**
- * Static paint-smear background — soft colored blobs behind the hero.
- * The moving PaintCursor sits on top and adds live strokes.
- */
 function PaintBackdrop() {
   return (
     <div aria-hidden className="pointer-events-none absolute inset-0 z-0 overflow-hidden">
@@ -146,14 +137,10 @@ function PaintBackdrop() {
       <div className="absolute -right-40 top-40 h-[560px] w-[560px] rounded-full bg-[radial-gradient(circle_at_center,hsla(180,85%,70%,0.55),transparent_60%)] blur-3xl" />
       <div className="absolute left-1/4 top-[55%] h-[500px] w-[500px] rounded-full bg-[radial-gradient(circle_at_center,hsla(120,80%,70%,0.5),transparent_60%)] blur-3xl" />
       <div className="absolute right-1/4 bottom-0 h-[480px] w-[480px] rounded-full bg-[radial-gradient(circle_at_center,hsla(35,95%,75%,0.55),transparent_60%)] blur-3xl" />
-      <div className="absolute inset-0 paper-grain opacity-40" />
+      <div className="paper-grain absolute inset-0 opacity-40" />
     </div>
   );
 }
-
-import { ArrowRight, X } from "lucide-react";
-import { AnimatePresence } from "motion/react";
-import { useEffect, useState } from "react";
 
 function ChatDrawer({
   open,
@@ -164,7 +151,6 @@ function ChatDrawer({
   onClose: () => void;
   initialPrompt: string | null;
 }) {
-  // Force remount when a new seed prompt arrives so ChatPortfolio can send it.
   const [key, setKey] = useState(0);
   useEffect(() => {
     if (open) setKey((k) => k + 1);
@@ -192,7 +178,6 @@ function ChatDrawer({
             className="fixed inset-x-0 bottom-0 z-50 mx-auto flex h-[85vh] max-w-2xl flex-col rounded-t-3xl border border-border bg-background/95 px-5 pb-4 pt-3 shadow-2xl backdrop-blur-xl md:h-[80vh]"
           >
             <div className="flex items-center justify-between border-b border-border pb-3">
-              <div className="mx-auto h-1 w-10 rounded-full bg-border md:hidden" />
               <div className="flex items-center gap-2">
                 <img src={avatarUrl} alt="" className="h-8 w-8" />
                 <div className="text-sm">
