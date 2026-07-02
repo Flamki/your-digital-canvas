@@ -79,6 +79,14 @@ export function PaintCursor() {
       // Additive-ish blending for luminous, blending paint.
       ctx.globalCompositeOperation = "lighter";
 
+      // If the user hasn't moved yet, drift an ambient point across the screen
+      // so the paint effect is visible on load.
+      if (!hasMoved) {
+        ambientT += 0.004;
+        curX = width * (0.5 + 0.35 * Math.sin(ambientT * 1.3));
+        curY = height * (0.5 + 0.3 * Math.cos(ambientT * 0.9));
+      }
+
       // Ease toward pointer for smooth, brush-like motion.
       const easedX = lastX + (curX - lastX) * 0.18;
       const easedY = lastY + (curY - lastY) * 0.18;
