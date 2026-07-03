@@ -37,6 +37,7 @@ const CHAT_SUGGESTIONS = [
 
 export function ChatPortfolio({ initialPrompt }: { initialPrompt?: string }) {
   const [input, setInput] = useState("");
+  const [inputFocused, setInputFocused] = useState(false);
   const [resumeOpen, setResumeOpen] = useState(false);
   const [shineKey, setShineKey] = useState(0);
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -63,7 +64,6 @@ export function ChatPortfolio({ initialPrompt }: { initialPrompt?: string }) {
       seededRef.current = true;
       void submit(initialPrompt);
     }
-    textareaRef.current?.focus();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -83,6 +83,8 @@ export function ChatPortfolio({ initialPrompt }: { initialPrompt?: string }) {
   const lastIsUser = messages.length > 0 && messages[messages.length - 1].role === "user";
   const showThinking = isLoading && lastIsUser;
   const hasAssistantResponse = messages.some((message) => message.role === "assistant");
+  const showSuggestions =
+    messages.length === 0 && !input.trim() && !inputFocused && !isLoading && !resumeOpen;
 
   return (
     <div className="relative flex h-full flex-col">
@@ -161,14 +163,15 @@ export function ChatPortfolio({ initialPrompt }: { initialPrompt?: string }) {
         }}
         className="absolute inset-x-0 bottom-4 px-4"
       >
-        <AnimatePresence>
-          {!input.trim() && !isLoading && (
+        <AnimatePresence initial={false} mode="popLayout">
+          {showSuggestions && (
             <motion.div
-              initial={{ opacity: 0, y: 8 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: 8 }}
-              transition={{ duration: 0.2 }}
-              className="mx-auto mb-3 flex max-w-2xl flex-wrap items-center justify-center gap-2"
+              layout
+              initial={{ height: 0, opacity: 0, y: 10, filter: "blur(8px)" }}
+              animate={{ height: "auto", opacity: 1, y: 0, filter: "blur(0px)" }}
+              exit={{ height: 0, opacity: 0, y: 8, filter: "blur(8px)" }}
+              transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
+              className="mx-auto mb-3 flex max-w-2xl flex-wrap items-center justify-center gap-2 overflow-hidden"
             >
               {CHAT_SUGGESTIONS.map(({ label, icon: Icon, ...suggestion }) => (
                 <button
@@ -176,6 +179,7 @@ export function ChatPortfolio({ initialPrompt }: { initialPrompt?: string }) {
                   type="button"
                   onClick={() => {
                     if ("action" in suggestion && suggestion.action === "resume") {
+                      setInputFocused(true);
                       setResumeOpen(true);
                       return;
                     }
@@ -210,7 +214,7 @@ export function ChatPortfolio({ initialPrompt }: { initialPrompt?: string }) {
         </AnimatePresence>
 
         <BorderGlow
-          className="chat-input-glow mx-auto max-w-xl rounded-full"
+          className="chat-input-glow mx-auto max-w-2xl rounded-full transition-[max-width,transform] duration-300 ease-out"
           borderRadius={999}
           edgeSensitivity={0}
           glowColor="284 88 74"
@@ -222,14 +226,18 @@ export function ChatPortfolio({ initialPrompt }: { initialPrompt?: string }) {
           fillOpacity={0}
         >
           <div
-            className="chat-input-glass relative flex w-full items-end gap-2 rounded-[28px] py-1.5 pl-6 pr-1.5"
+            className="chat-input-glass relative flex min-h-[56px] w-full items-end gap-2 rounded-[28px] py-1.5 pl-6 pr-1.5 transition-[min-height,box-shadow,background] duration-300 ease-out"
             onPointerDown={() => setShineKey((key) => key + 1)}
           >
             <textarea
               ref={textareaRef}
               value={input}
               onChange={(e) => setInput(e.target.value)}
-              onFocus={() => setShineKey((key) => key + 1)}
+              onFocus={() => {
+                setInputFocused(true);
+                setShineKey((key) => key + 1);
+              }}
+              onBlur={() => setInputFocused(false)}
               onKeyDown={(e) => {
                 if (e.key === "Enter" && !e.shiftKey) {
                   e.preventDefault();
