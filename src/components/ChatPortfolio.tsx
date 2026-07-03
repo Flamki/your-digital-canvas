@@ -399,7 +399,7 @@ function toMarkdownBlocks(text: string): MarkdownBlock[] {
 
 function renderInline(text: string, onResumeClick: () => void): ReactNode[] {
   const nodes: ReactNode[] = [];
-  const pattern = /(\*\*[^*]+\*\*|\[[^\]]+\]\([^)]+\)|`[^`]+`|https?:\/\/[^\s)]+)/g;
+  const pattern = /(\*\*[^*]+\*\*|\*[^*\n]+\*|\[[^\]]+\]\([^)]+\)|`[^`]+`|https?:\/\/[^\s)]+)/g;
   let lastIndex = 0;
 
   for (const match of text.matchAll(pattern)) {
@@ -412,8 +412,14 @@ function renderInline(text: string, onResumeClick: () => void): ReactNode[] {
     if (token.startsWith("**")) {
       nodes.push(
         <strong key={nodes.length} className="font-semibold text-foreground">
-          {token.slice(2, -2)}
+          {renderInline(token.slice(2, -2), onResumeClick)}
         </strong>,
+      );
+    } else if (token.startsWith("*")) {
+      nodes.push(
+        <em key={nodes.length} className="italic text-foreground/90">
+          {renderInline(token.slice(1, -1), onResumeClick)}
+        </em>,
       );
     } else if (token.startsWith("[")) {
       const linkMatch = token.match(/^\[([^\]]+)\]\(([^)]+)\)$/);
