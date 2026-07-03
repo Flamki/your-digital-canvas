@@ -1,9 +1,19 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { AnimatePresence, motion } from "motion/react";
-import { ArrowRight, Briefcase, Layers, PartyPopper, Smile, UserSearch, X } from "lucide-react";
+import {
+  ArrowRight,
+  Briefcase,
+  FileText,
+  Layers,
+  PartyPopper,
+  Smile,
+  UserSearch,
+  X,
+} from "lucide-react";
 import { useEffect, useState } from "react";
 import { ChatPortfolio } from "@/components/ChatPortfolio";
 import GlassSurface from "@/components/GlassSurface";
+import { ResumeDialog } from "@/components/ResumeDialog";
 import SplashCursor from "@/components/SplashCursor";
 import avatarUrl from "@/assets/ayush-avatar.png";
 
@@ -93,11 +103,13 @@ const QUICK_ACTIONS = [
   { label: "Projects", icon: Briefcase, prompt: "Show me your projects." },
   { label: "Skills", icon: Layers, prompt: "What are your top skills?" },
   { label: "Fun", icon: PartyPopper, prompt: "Tell me something fun about you." },
+  { label: "Resume", icon: FileText, action: "resume" },
   { label: "Contact", icon: UserSearch, prompt: "How can I contact or hire you?" },
-];
+] as const;
 
 function Index() {
   const [chatOpen, setChatOpen] = useState(false);
+  const [resumeOpen, setResumeOpen] = useState(false);
   const [seed, setSeed] = useState<string | null>(null);
 
   const openChat = (prompt?: string) => {
@@ -183,11 +195,22 @@ function Index() {
           transition={{ duration: 0.5, delay: 0.35 }}
           className="mb-1 mt-5 flex w-full max-w-2xl flex-wrap items-center justify-center gap-3"
         >
-          {QUICK_ACTIONS.map(({ label, icon: Icon, prompt }) => (
+          {QUICK_ACTIONS.map(({ label, icon: Icon, ...action }) => (
             <button
               key={label}
-              onClick={() => openChat(prompt)}
+              onClick={() => {
+                if ("action" in action && action.action === "resume") {
+                  setResumeOpen(true);
+                  return;
+                }
+                openChat(action.prompt);
+              }}
               className="glass-button min-w-[92px] text-sm font-medium text-foreground/90"
+              aria-label={
+                "action" in action && action.action === "resume"
+                  ? "Preview and download resume"
+                  : action.prompt
+              }
             >
               <GlassSurface
                 width="100%"
@@ -210,6 +233,7 @@ function Index() {
       </main>
 
       <ChatDrawer open={chatOpen} onClose={() => setChatOpen(false)} initialPrompt={seed} />
+      <ResumeDialog open={resumeOpen} onOpenChange={setResumeOpen} />
     </div>
   );
 }

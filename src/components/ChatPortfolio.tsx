@@ -7,6 +7,7 @@ import {
   Briefcase,
   ChevronDown,
   ExternalLink,
+  FileText,
   Layers,
   PartyPopper,
   Smile,
@@ -14,6 +15,7 @@ import {
 } from "lucide-react";
 import BorderGlow from "@/components/BorderGlow";
 import GlassSurface from "@/components/GlassSurface";
+import { ResumeDialog, RESUME_URL } from "@/components/ResumeDialog";
 import avatarUrl from "@/assets/ayush-avatar.png";
 
 const CHAT_SUGGESTIONS = [
@@ -29,11 +31,13 @@ const CHAT_SUGGESTIONS = [
     prompt: "What are your skills? Give me a list of your soft and hard skills.",
   },
   { label: "Fun", icon: PartyPopper, prompt: "Tell me something fun about you." },
+  { label: "Resume", icon: FileText, action: "resume" },
   { label: "Contact", icon: UserSearch, prompt: "How can I contact you?" },
-];
+] as const;
 
 export function ChatPortfolio({ initialPrompt }: { initialPrompt?: string }) {
   const [input, setInput] = useState("");
+  const [resumeOpen, setResumeOpen] = useState(false);
   const [shineKey, setShineKey] = useState(0);
   const scrollRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -125,7 +129,11 @@ export function ChatPortfolio({ initialPrompt }: { initialPrompt?: string }) {
                     transition={{ duration: 0.3, ease: "easeOut" }}
                     className="w-full"
                   >
-                    {text ? <AssistantMessage text={text} /> : <ThinkingDots />}
+                    {text ? (
+                      <AssistantMessage text={text} onResumeClick={() => setResumeOpen(true)} />
+                    ) : (
+                      <ThinkingDots />
+                    )}
                   </motion.div>
                 );
               })}
@@ -162,13 +170,23 @@ export function ChatPortfolio({ initialPrompt }: { initialPrompt?: string }) {
               transition={{ duration: 0.2 }}
               className="mx-auto mb-3 flex max-w-2xl flex-wrap items-center justify-center gap-2"
             >
-              {CHAT_SUGGESTIONS.map(({ label, icon: Icon, prompt }) => (
+              {CHAT_SUGGESTIONS.map(({ label, icon: Icon, ...suggestion }) => (
                 <button
                   key={label}
                   type="button"
-                  onClick={() => submit(prompt)}
+                  onClick={() => {
+                    if ("action" in suggestion && suggestion.action === "resume") {
+                      setResumeOpen(true);
+                      return;
+                    }
+                    submit(suggestion.prompt);
+                  }}
                   className="glass-button text-sm font-medium text-foreground/90"
-                  aria-label={prompt}
+                  aria-label={
+                    "action" in suggestion && suggestion.action === "resume"
+                      ? "Preview and download resume"
+                      : suggestion.prompt
+                  }
                 >
                   <GlassSurface
                     width="100%"
@@ -249,11 +267,12 @@ export function ChatPortfolio({ initialPrompt }: { initialPrompt?: string }) {
           </div>
         </BorderGlow>
       </form>
+      <ResumeDialog open={resumeOpen} onOpenChange={setResumeOpen} />
     </div>
   );
 }
 
-function AssistantMessage({ text }: { text: string }) {
+function AssistantMessage({ text, onResumeClick }: { text: string; onResumeClick: () => void }) {
   const blocks = toMarkdownBlocks(text);
 
   return (
@@ -265,7 +284,7 @@ function AssistantMessage({ text }: { text: string }) {
               key={index}
               className="pt-1 text-2xl font-bold leading-tight text-foreground md:text-3xl"
             >
-              {renderInline(block.text)}
+              {renderInline(block.text, onResumeClick)}
             </h2>
           );
         }
@@ -273,7 +292,7 @@ function AssistantMessage({ text }: { text: string }) {
         if (block.type === "subheading") {
           return (
             <h3 key={index} className="pt-2 text-lg font-semibold leading-snug text-foreground">
-              {renderInline(block.text)}
+              {renderInline(block.text, onResumeClick)}
             </h3>
           );
         }
@@ -284,7 +303,7 @@ function AssistantMessage({ text }: { text: string }) {
               {block.items.map((item, itemIndex) => (
                 <li key={itemIndex} className="flex gap-3">
                   <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-chat-user" />
-                  <span className="min-w-0">{renderInline(item)}</span>
+                  <span className="min-w-0">{renderInline(item, onResumeClick)}</span>
                 </li>
               ))}
             </ul>
@@ -293,7 +312,7 @@ function AssistantMessage({ text }: { text: string }) {
 
         return (
           <p key={index} className="text-pretty">
-            {renderInline(block.text)}
+            {renderInline(block.text, onResumeClick)}
           </p>
         );
       })}
@@ -370,7 +389,7 @@ function toMarkdownBlocks(text: string): MarkdownBlock[] {
   return blocks;
 }
 
-function renderInline(text: string): ReactNode[] {
+function renderInline(text: string, onResumeClick: () => void): ReactNode[] {
   const nodes: ReactNode[] = [];
   const pattern = /(\*\*[^*]+\*\*|\[[^\]]+\]\([^)]+\)|`[^`]+`|https?:\/\/[^\s)]+)/g;
   let lastIndex = 0;
@@ -391,12 +410,13 @@ function renderInline(text: string): ReactNode[] {
     } else if (token.startsWith("[")) {
       const linkMatch = token.match(/^\[([^\]]+)\]\(([^)]+)\)$/);
       if (linkMatch) {
+        const href = getCanonicalProjectHref(linkMatch[1], linkMatch[2]);
         nodes.push(
-          <GlassLink
-            key={nodes.length}
-            href={getCanonicalProjectHref(linkMatch[1], linkMatch[2])}
-            label={linkMatch[1]}
-          />,
+          isResumeLink(linkMatch[1], href) ? (
+            <GlassLink key={nodes.length} label={linkMatch[1]} onClick={onResumeClick} />
+          ) : (
+            <GlassLink key={nodes.length} href={href} label={linkMatch[1]} />
+          ),
         );
       } else {
         nodes.push(token);
@@ -412,12 +432,13 @@ function renderInline(text: string): ReactNode[] {
       );
     } else {
       const { href, trailing } = normalizeUrlToken(token);
+      const canonicalHref = getCanonicalProjectHref("", href);
       nodes.push(
-        <GlassLink
-          key={nodes.length}
-          href={getCanonicalProjectHref("", href)}
-          label={getLinkLabel(href)}
-        />,
+        isResumeLink("", canonicalHref) ? (
+          <GlassLink key={nodes.length} label="Preview resume" onClick={onResumeClick} />
+        ) : (
+          <GlassLink key={nodes.length} href={canonicalHref} label={getLinkLabel(canonicalHref)} />
+        ),
       );
       if (trailing) nodes.push(trailing);
     }
@@ -432,14 +453,26 @@ function renderInline(text: string): ReactNode[] {
   return nodes.map((node, index) => <Fragment key={index}>{node}</Fragment>);
 }
 
-function GlassLink({ href, label }: { href: string; label: string }) {
+function GlassLink({
+  href,
+  label,
+  onClick,
+}: {
+  href?: string;
+  label: string;
+  onClick?: () => void;
+}) {
+  if (onClick) {
+    return (
+      <button type="button" onClick={onClick} className="glass-link-action">
+        <span className="min-w-0 truncate">{label}</span>
+        <FileText className="h-3.5 w-3.5 shrink-0 text-foreground/65" />
+      </button>
+    );
+  }
+
   return (
-    <a
-      href={href}
-      target="_blank"
-      rel="noreferrer"
-      className="mx-1 my-1 inline-flex max-w-full items-center gap-2 rounded-full border border-white/60 bg-white/35 px-3 py-1.5 text-sm font-semibold text-foreground shadow-[0_8px_28px_-20px_rgba(0,0,0,0.55)] backdrop-blur-xl transition hover:-translate-y-0.5 hover:bg-white/50 hover:shadow-[0_14px_34px_-22px_rgba(0,0,0,0.75)]"
-    >
+    <a href={href} target="_blank" rel="noreferrer" className="glass-link-action">
       <span className="min-w-0 truncate">{label}</span>
       <ExternalLink className="h-3.5 w-3.5 shrink-0 text-foreground/65" />
     </a>
@@ -468,6 +501,10 @@ function getLinkLabel(href: string) {
 function getCanonicalProjectHref(label: string, href: string) {
   const key = `${label} ${href}`.toLowerCase();
 
+  if (key.includes("resume") || key.includes("cv") || key.includes("ayush_singh_resume")) {
+    return RESUME_URL;
+  }
+
   if (key.includes("chadwallet") || key.includes("chad-solana-swap-v2")) {
     return "https://chad-solana-swap-v2.vercel.app/";
   }
@@ -495,6 +532,11 @@ function getCanonicalProjectHref(label: string, href: string) {
   }
 
   return href;
+}
+
+function isResumeLink(label: string, href: string) {
+  const key = `${label} ${href}`.toLowerCase();
+  return key.includes("resume") || key.includes("cv") || key.includes("ayush_singh_resume");
 }
 
 function UserMessage({ text }: { text: string }) {
