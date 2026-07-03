@@ -391,7 +391,13 @@ function renderInline(text: string): ReactNode[] {
     } else if (token.startsWith("[")) {
       const linkMatch = token.match(/^\[([^\]]+)\]\(([^)]+)\)$/);
       if (linkMatch) {
-        nodes.push(<GlassLink key={nodes.length} href={linkMatch[2]} label={linkMatch[1]} />);
+        nodes.push(
+          <GlassLink
+            key={nodes.length}
+            href={getCanonicalProjectHref(linkMatch[1], linkMatch[2])}
+            label={linkMatch[1]}
+          />,
+        );
       } else {
         nodes.push(token);
       }
@@ -406,7 +412,13 @@ function renderInline(text: string): ReactNode[] {
       );
     } else {
       const { href, trailing } = normalizeUrlToken(token);
-      nodes.push(<GlassLink key={nodes.length} href={href} label={getLinkLabel(href)} />);
+      nodes.push(
+        <GlassLink
+          key={nodes.length}
+          href={getCanonicalProjectHref("", href)}
+          label={getLinkLabel(href)}
+        />,
+      );
       if (trailing) nodes.push(trailing);
     }
 
@@ -451,6 +463,38 @@ function getLinkLabel(href: string) {
   } catch {
     return href;
   }
+}
+
+function getCanonicalProjectHref(label: string, href: string) {
+  const key = `${label} ${href}`.toLowerCase();
+
+  if (key.includes("chadwallet") || key.includes("chad-solana-swap-v2")) {
+    return "https://chad-solana-swap-v2.vercel.app/";
+  }
+
+  if (key.includes("social sherpa") || key.includes("social-sherpa")) {
+    return href.includes("linkedin.com")
+      ? "https://www.linkedin.com/posts/ayush-s-singh_buildinpublic-aiagents-linkedinautomation-ugcPost-7473330643242881025-CiYm/"
+      : "https://github.com/Flamki/social-sherpa";
+  }
+
+  if (key.includes("getsolodesk")) {
+    return "https://getsolodesk.com/";
+  }
+
+  if (key.includes("brandpilot")) {
+    return href.includes("github.com")
+      ? "https://github.com/Flamki/brandpilot"
+      : "http://brandpilot-web-878182908092-us-east-1.s3-website-us-east-1.amazonaws.com/";
+  }
+
+  if (key.includes("vignaharta")) {
+    return href.includes("github.com")
+      ? "https://github.com/Flamki/vignaharta"
+      : "https://vignaharta.vercel.app/";
+  }
+
+  return href;
 }
 
 function UserMessage({ text }: { text: string }) {
