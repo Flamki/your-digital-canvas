@@ -1,9 +1,13 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { AnimatePresence, motion } from "motion/react";
 import {
   ArrowRight,
   Briefcase,
+  ChevronLeft,
+  ChevronRight,
   FileText,
+  Home,
+  Keyboard as KeyboardIcon,
   Layers,
   PartyPopper,
   Smile,
@@ -110,11 +114,13 @@ const QUICK_ACTIONS = [
 function Index() {
   const [chatOpen, setChatOpen] = useState(false);
   const [resumeOpen, setResumeOpen] = useState(false);
+  const [sideNavOpen, setSideNavOpen] = useState(false);
   const [seed, setSeed] = useState<string | null>(null);
 
   const openChat = (prompt?: string) => {
     setSeed(prompt ?? null);
     setChatOpen(true);
+    setSideNavOpen(false);
   };
 
   return (
@@ -232,9 +238,170 @@ function Index() {
         </motion.div>
       </main>
 
+      <PageRail
+        open={sideNavOpen}
+        onOpenChange={setSideNavOpen}
+        onHome={() => {
+          setChatOpen(false);
+          setSideNavOpen(false);
+        }}
+        onResume={() => {
+          setResumeOpen(true);
+          setSideNavOpen(false);
+        }}
+        onPrompt={openChat}
+      />
       <ChatDrawer open={chatOpen} onClose={() => setChatOpen(false)} initialPrompt={seed} />
       <ResumeDialog open={resumeOpen} onOpenChange={setResumeOpen} />
     </div>
+  );
+}
+
+function PageRail({
+  open,
+  onOpenChange,
+  onHome,
+  onResume,
+  onPrompt,
+}: {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  onHome: () => void;
+  onResume: () => void;
+  onPrompt: (prompt?: string) => void;
+}) {
+  return (
+    <>
+      <button
+        type="button"
+        onClick={() => onOpenChange(!open)}
+        className="glass-button fixed right-0 top-1/2 z-30 -translate-y-1/2 text-foreground/75"
+        aria-label={open ? "Close page menu" : "Open page menu"}
+        aria-expanded={open}
+      >
+        <GlassSurface
+          width={38}
+          height={66}
+          borderRadius={999}
+          backgroundOpacity={0.16}
+          saturation={1.9}
+          distortionScale={-115}
+          redOffset={3}
+          greenOffset={10}
+          blueOffset={16}
+          contentClassName="pl-1"
+        >
+          {open ? <ChevronRight className="h-5 w-5" /> : <ChevronLeft className="h-5 w-5" />}
+        </GlassSurface>
+      </button>
+
+      <AnimatePresence>
+        {open && (
+          <motion.nav
+            initial={{ opacity: 0, x: 24, scale: 0.96, filter: "blur(8px)" }}
+            animate={{ opacity: 1, x: 0, scale: 1, filter: "blur(0px)" }}
+            exit={{ opacity: 0, x: 24, scale: 0.96, filter: "blur(8px)" }}
+            transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
+            className="fixed right-4 top-1/2 z-30 w-[min(15rem,calc(100vw-2rem))] -translate-y-1/2"
+            aria-label="Page menu"
+          >
+            <div className="glass-strong rounded-[28px] p-2">
+              <RailButton label="Home" icon={Home} onClick={onHome} />
+              <RailLink
+                label="Keyboard Game"
+                icon={KeyboardIcon}
+                to="/keyboard-game"
+                onClick={() => onOpenChange(false)}
+              />
+              {QUICK_ACTIONS.map(({ label, icon: Icon, ...action }) => (
+                <RailButton
+                  key={label}
+                  label={label}
+                  icon={Icon}
+                  onClick={() => {
+                    if ("action" in action && action.action === "resume") {
+                      onResume();
+                      return;
+                    }
+                    onPrompt(action.prompt);
+                  }}
+                />
+              ))}
+            </div>
+          </motion.nav>
+        )}
+      </AnimatePresence>
+    </>
+  );
+}
+
+function RailLink({
+  label,
+  icon: Icon,
+  to,
+  onClick,
+}: {
+  label: string;
+  icon: typeof Smile;
+  to: "/keyboard-game";
+  onClick: () => void;
+}) {
+  return (
+    <Link
+      to={to}
+      onClick={onClick}
+      className="glass-button group block w-full text-left text-sm font-medium text-foreground/85"
+    >
+      <GlassSurface
+        width="100%"
+        height={46}
+        borderRadius={18}
+        backgroundOpacity={0.065}
+        saturation={1.75}
+        distortionScale={-95}
+        redOffset={2}
+        greenOffset={8}
+        blueOffset={14}
+        contentClassName="justify-start gap-3 px-4"
+      >
+        <Icon className="h-4 w-4 text-foreground/65 transition-colors group-hover:text-foreground" />
+        <span>{label}</span>
+      </GlassSurface>
+    </Link>
+  );
+}
+
+function RailButton({
+  label,
+  icon: Icon,
+  onClick,
+}: {
+  label: string;
+  icon: typeof Smile;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className="glass-button group w-full text-left text-sm font-medium text-foreground/85"
+    >
+      <GlassSurface
+        width="100%"
+        height={46}
+        borderRadius={18}
+        backgroundOpacity={0.065}
+        saturation={1.75}
+        distortionScale={-95}
+        redOffset={2}
+        greenOffset={8}
+        blueOffset={14}
+        contentClassName="justify-start gap-3 px-4"
+      >
+        <Icon className="h-4 w-4 text-foreground/65 transition-colors group-hover:text-foreground" />
+        <span>{label}</span>
+      </GlassSurface>
+    </button>
   );
 }
 

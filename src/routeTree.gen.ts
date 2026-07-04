@@ -9,12 +9,24 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as KeyboardGameRouteImport } from './routes/keyboard-game'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as ApiKeyboardLeaderboardRouteImport } from './routes/api/keyboard-leaderboard'
 import { Route as ApiChatRouteImport } from './routes/api/chat'
 
+const KeyboardGameRoute = KeyboardGameRouteImport.update({
+  id: '/keyboard-game',
+  path: '/keyboard-game',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiKeyboardLeaderboardRoute = ApiKeyboardLeaderboardRouteImport.update({
+  id: '/api/keyboard-leaderboard',
+  path: '/api/keyboard-leaderboard',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiChatRoute = ApiChatRouteImport.update({
@@ -25,37 +37,64 @@ const ApiChatRoute = ApiChatRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/keyboard-game': typeof KeyboardGameRoute
   '/api/chat': typeof ApiChatRoute
+  '/api/keyboard-leaderboard': typeof ApiKeyboardLeaderboardRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/keyboard-game': typeof KeyboardGameRoute
   '/api/chat': typeof ApiChatRoute
+  '/api/keyboard-leaderboard': typeof ApiKeyboardLeaderboardRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/keyboard-game': typeof KeyboardGameRoute
   '/api/chat': typeof ApiChatRoute
+  '/api/keyboard-leaderboard': typeof ApiKeyboardLeaderboardRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/api/chat'
+  fullPaths: '/' | '/keyboard-game' | '/api/chat' | '/api/keyboard-leaderboard'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/api/chat'
-  id: '__root__' | '/' | '/api/chat'
+  to: '/' | '/keyboard-game' | '/api/chat' | '/api/keyboard-leaderboard'
+  id:
+    | '__root__'
+    | '/'
+    | '/keyboard-game'
+    | '/api/chat'
+    | '/api/keyboard-leaderboard'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  KeyboardGameRoute: typeof KeyboardGameRoute
   ApiChatRoute: typeof ApiChatRoute
+  ApiKeyboardLeaderboardRoute: typeof ApiKeyboardLeaderboardRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/keyboard-game': {
+      id: '/keyboard-game'
+      path: '/keyboard-game'
+      fullPath: '/keyboard-game'
+      preLoaderRoute: typeof KeyboardGameRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/keyboard-leaderboard': {
+      id: '/api/keyboard-leaderboard'
+      path: '/api/keyboard-leaderboard'
+      fullPath: '/api/keyboard-leaderboard'
+      preLoaderRoute: typeof ApiKeyboardLeaderboardRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/chat': {
@@ -70,7 +109,9 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  KeyboardGameRoute: KeyboardGameRoute,
   ApiChatRoute: ApiChatRoute,
+  ApiKeyboardLeaderboardRoute: ApiKeyboardLeaderboardRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
