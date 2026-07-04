@@ -113,7 +113,7 @@ export function ChatPortfolio({ initialPrompt }: { initialPrompt?: string }) {
     window.speechSynthesis.cancel();
     const utterance = new SpeechSynthesisUtterance(cleanText);
     utterance.lang = "en-US";
-    utterance.rate = 1.12;
+    utterance.rate = 1.06;
     utterance.pitch = 1;
     utterance.volume = 1;
 
@@ -151,7 +151,6 @@ export function ChatPortfolio({ initialPrompt }: { initialPrompt?: string }) {
         const objectUrl = URL.createObjectURL(audioBlob);
         const audio = new Audio(objectUrl);
         audio.volume = 1;
-        audio.playbackRate = 1.03;
         audioObjectUrlRef.current = objectUrl;
         audioRef.current = audio;
 

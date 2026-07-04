@@ -20,13 +20,13 @@ export const Route = createFileRoute("/api/tts")({
           const tts = new MsEdgeTTS();
           await tts.setMetadata(
             process.env.EDGE_TTS_VOICE || DEFAULT_EDGE_VOICE,
-            OUTPUT_FORMAT.AUDIO_24KHZ_48KBITRATE_MONO_MP3,
+            OUTPUT_FORMAT.AUDIO_24KHZ_96KBITRATE_MONO_MP3,
           );
 
           const { audioStream } = tts.toStream(escapeXml(text), {
-            rate: "+20%",
-            pitch: "+1Hz",
-            volume: 100,
+            rate: "+8%",
+            pitch: "+0Hz",
+            volume: 88,
           });
 
           const audio = await readableToBuffer(audioStream);
