@@ -503,6 +503,34 @@
     0 8px 22px -12px color-mix(in oklch, var(--chat-user) 75%, transparent);
 }
 
+.chat-voice-surface {
+  color: color-mix(in oklch, var(--foreground) 72%, transparent);
+  background: color-mix(in oklch, white 18%, transparent);
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 58%),
+    inset 0 -1px 0 color-mix(in oklch, var(--foreground) 6%, transparent),
+    0 8px 22px -18px color-mix(in oklch, var(--foreground) 36%, transparent);
+}
+
+.chat-voice-surface.is-active {
+  color: var(--chat-user);
+  background: color-mix(in oklch, var(--chat-user) 10%, white 14%);
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 64%),
+    0 0 0 1px color-mix(in oklch, var(--chat-user) 24%, transparent) inset,
+    0 8px 22px -16px color-mix(in oklch, var(--chat-user) 45%, transparent);
+}
+
+.chat-voice-surface.is-listening {
+  color: var(--chat-user-foreground);
+  background: var(--chat-user);
+  animation: voice-listening-pulse 1.1s ease-in-out infinite;
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 38%),
+    0 0 0 1px color-mix(in oklch, white 30%, transparent) inset,
+    0 0 24px -8px color-mix(in oklch, var(--chat-user) 90%, transparent);
+}
+
 .chat-input-glass {
   background: color-mix(in oklch, var(--background) 38%, transparent);
   backdrop-filter: blur(18px) saturate(1.85) brightness(1.04);
@@ -510,4 +538,14 @@
   box-shadow:
     inset 0 1px 0 color-mix(in oklch, white 55%, transparent),
     inset 0 -1px 0 color-mix(in oklch, var(--foreground) 8%, transparent);
+}
+
+@keyframes voice-listening-pulse {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.07);
+  }
 }

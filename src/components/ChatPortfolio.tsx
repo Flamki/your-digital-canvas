@@ -1,7 +1,7 @@
 import { useChat } from "@ai-sdk/react";
 import { DefaultChatTransport } from "ai";
 import { motion, AnimatePresence } from "motion/react";
-import { Fragment, useEffect, useRef, useState, type ReactNode } from "react";
+import { Fragment, useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import {
   ArrowUp,
   Briefcase,
@@ -9,9 +9,13 @@ import {
   ExternalLink,
   FileText,
   Layers,
+  Mic,
+  MicOff,
   PartyPopper,
   Smile,
   UserSearch,
+  Volume2,
+  VolumeX,
 } from "lucide-react";
 import BorderGlow from "@/components/BorderGlow";
 import GlassSurface from "@/components/GlassSurface";
@@ -39,8 +43,17 @@ export function ChatPortfolio({ initialPrompt }: { initialPrompt?: string }) {
   const [input, setInput] = useState("");
   const [inputFocused, setInputFocused] = useState(false);
   const [shineKey, setShineKey] = useState(0);
+  const [voiceEnabled, setVoiceEnabled] = useState(true);
+  const [speechSupported, setSpeechSupported] = useState(false);
+  const [speechSynthesisSupported, setSpeechSynthesisSupported] = useState(false);
+  const [isListening, setIsListening] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const recognitionRef = useRef<BrowserSpeechRecognition | null>(null);
+  const finalTranscriptRef = useRef("");
+  const liveTranscriptRef = useRef("");
+  const shouldSubmitTranscriptRef = useRef(false);
+  const lastSpokenMessageIdRef = useRef("");
   const seededRef = useRef(false);
 
   const { messages, sendMessage, setMessages, status } = useChat({
@@ -49,13 +62,132 @@ export function ChatPortfolio({ initialPrompt }: { initialPrompt?: string }) {
 
   const isLoading = status === "submitted" || status === "streaming";
 
-  const submit = async (text: string) => {
-    const value = text.trim();
-    if (!value || isLoading) return;
-    setShineKey((key) => key + 1);
+  const submit = useCallback(
+    async (text: string) => {
+      const value = text.trim();
+      if (!value || isLoading) return;
+      window.speechSynthesis?.cancel();
+      setShineKey((key) => key + 1);
+      setInput("");
+      setMessages([]);
+      await sendMessage({ text: value });
+    },
+    [isLoading, sendMessage, setMessages],
+  );
+
+  const submitRef = useRef(submit);
+
+  useEffect(() => {
+    submitRef.current = submit;
+  }, [submit]);
+
+  const latestAssistantMessage = useMemo(() => {
+    return [...messages].reverse().find((message) => message.role === "assistant");
+  }, [messages]);
+
+  const latestAssistantText = useMemo(() => {
+    return latestAssistantMessage ? getMessageText(latestAssistantMessage) : "";
+  }, [latestAssistantMessage]);
+
+  const speakText = useCallback((text: string) => {
+    if (typeof window === "undefined" || !("speechSynthesis" in window)) return;
+
+    const cleanText = cleanTextForSpeech(text);
+    if (!cleanText) return;
+
+    window.speechSynthesis.cancel();
+    const utterance = new SpeechSynthesisUtterance(cleanText);
+    utterance.lang = "en-US";
+    utterance.rate = 1.02;
+    utterance.pitch = 1;
+    utterance.volume = 0.95;
+
+    const voices = window.speechSynthesis.getVoices();
+    const preferredVoice =
+      voices.find((voice) => /google us english|microsoft aria/i.test(voice.name)) ??
+      voices.find((voice) => voice.lang.toLowerCase().startsWith("en"));
+
+    if (preferredVoice) utterance.voice = preferredVoice;
+    window.speechSynthesis.speak(utterance);
+  }, []);
+
+  const toggleVoice = () => {
+    setVoiceEnabled((enabled) => {
+      const next = !enabled;
+      if (!next) {
+        window.speechSynthesis?.cancel();
+      } else if (latestAssistantText) {
+        window.setTimeout(() => speakText(latestAssistantText), 0);
+      }
+      return next;
+    });
+  };
+
+  const stopListening = useCallback(() => {
+    shouldSubmitTranscriptRef.current = true;
+    recognitionRef.current?.stop();
+  }, []);
+
+  const startListening = useCallback(() => {
+    const Recognition = getSpeechRecognitionConstructor();
+    if (!Recognition || isLoading) return;
+
+    window.speechSynthesis?.cancel();
+    recognitionRef.current?.abort();
+    finalTranscriptRef.current = "";
+    liveTranscriptRef.current = "";
+    shouldSubmitTranscriptRef.current = true;
+
+    const recognition = new Recognition();
+    recognition.continuous = false;
+    recognition.interimResults = true;
+    recognition.lang = "en-US";
+
+    recognition.onresult = (event) => {
+      let interimTranscript = "";
+
+      for (let index = event.resultIndex; index < event.results.length; index += 1) {
+        const result = event.results[index];
+        const transcript = result[0]?.transcript ?? "";
+
+        if (result.isFinal) {
+          finalTranscriptRef.current = `${finalTranscriptRef.current} ${transcript}`.trim();
+        } else {
+          interimTranscript += transcript;
+        }
+      }
+
+      liveTranscriptRef.current = `${finalTranscriptRef.current} ${interimTranscript}`.trim();
+      setInput(liveTranscriptRef.current);
+    };
+
+    recognition.onerror = () => {
+      shouldSubmitTranscriptRef.current = false;
+      setIsListening(false);
+    };
+
+    recognition.onend = () => {
+      setIsListening(false);
+      recognitionRef.current = null;
+
+      const transcript = (finalTranscriptRef.current || liveTranscriptRef.current).trim();
+      if (shouldSubmitTranscriptRef.current && transcript) {
+        void submitRef.current(transcript);
+      }
+    };
+
+    recognitionRef.current = recognition;
     setInput("");
-    setMessages([]);
-    await sendMessage({ text: value });
+    setIsListening(true);
+    recognition.start();
+  }, [isLoading]);
+
+  const toggleListening = () => {
+    if (isListening) {
+      stopListening();
+      return;
+    }
+    startListening();
   };
 
   useEffect(() => {
@@ -69,6 +201,32 @@ export function ChatPortfolio({ initialPrompt }: { initialPrompt?: string }) {
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
   }, [messages, status]);
+
+  useEffect(() => {
+    setSpeechSupported(Boolean(getSpeechRecognitionConstructor()));
+    setSpeechSynthesisSupported("speechSynthesis" in window);
+
+    return () => {
+      recognitionRef.current?.abort();
+      window.speechSynthesis?.cancel();
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!voiceEnabled || !speechSynthesisSupported || isLoading) return;
+    if (!latestAssistantMessage || !latestAssistantText.trim()) return;
+    if (lastSpokenMessageIdRef.current === latestAssistantMessage.id) return;
+
+    lastSpokenMessageIdRef.current = latestAssistantMessage.id;
+    speakText(latestAssistantText);
+  }, [
+    isLoading,
+    latestAssistantMessage,
+    latestAssistantText,
+    speakText,
+    speechSynthesisSupported,
+    voiceEnabled,
+  ]);
 
   useEffect(() => {
     const textarea = textareaRef.current;
@@ -242,6 +400,52 @@ export function ChatPortfolio({ initialPrompt }: { initialPrompt?: string }) {
               placeholder="Ask me anything..."
               className="max-h-[200px] min-h-[36px] min-w-0 flex-1 resize-none bg-transparent py-2 text-[15px] text-foreground placeholder:text-muted-foreground focus:outline-none"
             />
+            <button
+              type="button"
+              onClick={toggleVoice}
+              disabled={!speechSynthesisSupported}
+              className="glass-button shrink-0 text-foreground disabled:pointer-events-none disabled:opacity-35"
+              aria-label={voiceEnabled ? "Turn voice off" : "Turn voice on"}
+              title={voiceEnabled ? "Voice on" : "Voice off"}
+            >
+              <GlassSurface
+                width={38}
+                height={38}
+                borderRadius={999}
+                backgroundOpacity={0.08}
+                saturation={1.6}
+                distortionScale={-42}
+                redOffset={0}
+                greenOffset={0}
+                blueOffset={0}
+                className={voiceEnabled ? "chat-voice-surface is-active" : "chat-voice-surface"}
+              >
+                {voiceEnabled ? <Volume2 className="h-4 w-4" /> : <VolumeX className="h-4 w-4" />}
+              </GlassSurface>
+            </button>
+            <button
+              type="button"
+              onClick={toggleListening}
+              disabled={!speechSupported || isLoading}
+              className="glass-button shrink-0 text-foreground disabled:pointer-events-none disabled:opacity-35"
+              aria-label={isListening ? "Send spoken message" : "Talk to Ayush AI"}
+              title={speechSupported ? "Talk" : "Voice input is not supported in this browser"}
+            >
+              <GlassSurface
+                width={38}
+                height={38}
+                borderRadius={999}
+                backgroundOpacity={0.08}
+                saturation={1.7}
+                distortionScale={-42}
+                redOffset={0}
+                greenOffset={0}
+                blueOffset={0}
+                className={isListening ? "chat-voice-surface is-listening" : "chat-voice-surface"}
+              >
+                {isListening ? <MicOff className="h-4 w-4" /> : <Mic className="h-4 w-4" />}
+              </GlassSurface>
+            </button>
             <span className="chat-send-strands shrink-0 rounded-full">
               <button
                 type="submit"
@@ -271,6 +475,59 @@ export function ChatPortfolio({ initialPrompt }: { initialPrompt?: string }) {
       </form>
     </div>
   );
+}
+
+type BrowserSpeechRecognitionResult = {
+  isFinal: boolean;
+  0?: { transcript?: string };
+};
+
+type BrowserSpeechRecognitionEvent = Event & {
+  resultIndex: number;
+  results: {
+    length: number;
+    [index: number]: BrowserSpeechRecognitionResult;
+  };
+};
+
+type BrowserSpeechRecognition = {
+  continuous: boolean;
+  interimResults: boolean;
+  lang: string;
+  onresult: ((event: BrowserSpeechRecognitionEvent) => void) | null;
+  onerror: ((event: Event) => void) | null;
+  onend: (() => void) | null;
+  start: () => void;
+  stop: () => void;
+  abort: () => void;
+};
+
+type BrowserSpeechRecognitionConstructor = new () => BrowserSpeechRecognition;
+
+type SpeechRecognitionWindow = Window &
+  typeof globalThis & {
+    SpeechRecognition?: BrowserSpeechRecognitionConstructor;
+    webkitSpeechRecognition?: BrowserSpeechRecognitionConstructor;
+  };
+
+function getSpeechRecognitionConstructor() {
+  if (typeof window === "undefined") return null;
+  const speechWindow = window as SpeechRecognitionWindow;
+  return speechWindow.SpeechRecognition ?? speechWindow.webkitSpeechRecognition ?? null;
+}
+
+function getMessageText(message: { parts: Array<{ type: string; text?: string }> }) {
+  return message.parts.map((part) => (part.type === "text" ? (part.text ?? "") : "")).join("");
+}
+
+function cleanTextForSpeech(text: string) {
+  return text
+    .replace(/\[([^\]]+)\]\([^)]+\)/g, "$1")
+    .replace(/https?:\/\/[^\s)]+/g, "link")
+    .replace(/[`*_#>]/g, "")
+    .replace(/\s+/g, " ")
+    .trim()
+    .slice(0, 1200);
 }
 
 function AssistantMessage({ text }: { text: string }) {
