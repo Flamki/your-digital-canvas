@@ -113,9 +113,9 @@ export function ChatPortfolio({ initialPrompt }: { initialPrompt?: string }) {
     window.speechSynthesis.cancel();
     const utterance = new SpeechSynthesisUtterance(cleanText);
     utterance.lang = "en-US";
-    utterance.rate = 1.02;
+    utterance.rate = 1.12;
     utterance.pitch = 1;
-    utterance.volume = 0.95;
+    utterance.volume = 1;
 
     const voices = window.speechSynthesis.getVoices();
     const preferredVoice =
@@ -150,6 +150,8 @@ export function ChatPortfolio({ initialPrompt }: { initialPrompt?: string }) {
         const audioBlob = await response.blob();
         const objectUrl = URL.createObjectURL(audioBlob);
         const audio = new Audio(objectUrl);
+        audio.volume = 1;
+        audio.playbackRate = 1.03;
         audioObjectUrlRef.current = objectUrl;
         audioRef.current = audio;
 

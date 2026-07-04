@@ -24,9 +24,9 @@ export const Route = createFileRoute("/api/tts")({
           );
 
           const { audioStream } = tts.toStream(escapeXml(text), {
-            rate: 0.04,
-            pitch: "+0Hz",
-            volume: 1,
+            rate: "+20%",
+            pitch: "+1Hz",
+            volume: 100,
           });
 
           const audio = await readableToBuffer(audioStream);
