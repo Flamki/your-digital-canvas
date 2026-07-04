@@ -116,10 +116,10 @@
 @utility paper-grain {
   background-image: radial-gradient(
     circle at 1px 1px,
-    color-mix(in oklch, var(--foreground) 8%, transparent) 1px,
+    color-mix(in oklch, var(--foreground) 4%, transparent) 1px,
     transparent 0
   );
-  background-size: 22px 22px;
+  background-size: 28px 28px;
 }
 
 /* Glassmorphism surfaces */
@@ -133,12 +133,14 @@
 }
 
 @utility glass-strong {
-  background: color-mix(in oklch, var(--background) 62%, transparent);
-  backdrop-filter: blur(28px) saturate(200%);
-  border: 1px solid color-mix(in oklch, var(--foreground) 16%, transparent);
+  background: color-mix(in oklch, white 34%, transparent);
+  backdrop-filter: blur(30px) saturate(215%) brightness(1.06);
+  -webkit-backdrop-filter: blur(30px) saturate(215%) brightness(1.06);
+  border: 1px solid color-mix(in oklch, white 64%, transparent);
   box-shadow:
-    0 1px 0 0 color-mix(in oklch, white 70%, transparent) inset,
-    0 20px 60px -20px color-mix(in oklch, var(--foreground) 30%, transparent);
+    0 1px 0 0 color-mix(in oklch, white 86%, transparent) inset,
+    0 -1px 0 0 color-mix(in oklch, var(--foreground) 6%, transparent) inset,
+    0 22px 64px -34px color-mix(in oklch, var(--foreground) 28%, transparent);
 }
 
 @utility glass-subtle {
@@ -192,23 +194,23 @@
 }
 
 .glass-surface--svg {
-  background: hsl(0 0% 100% / var(--glass-frost, 0.08));
+  background: hsl(0 0% 100% / var(--glass-frost, 0.055));
   backdrop-filter: var(--filter-id, url(#glass-filter)) saturate(var(--glass-saturation, 1.75));
   box-shadow:
-    0 0 2px 1px color-mix(in oklch, var(--foreground) 12%, transparent) inset,
-    0 0 16px 5px color-mix(in oklch, white 34%, transparent) inset,
-    0 12px 42px -26px color-mix(in oklch, var(--foreground) 34%, transparent);
+    0 0 1px 1px color-mix(in oklch, white 58%, transparent) inset,
+    0 0 22px 5px color-mix(in oklch, white 28%, transparent) inset,
+    0 14px 38px -30px color-mix(in oklch, var(--foreground) 28%, transparent);
 }
 
 .glass-surface--fallback {
-  background: color-mix(in oklch, var(--background) 36%, transparent);
-  backdrop-filter: blur(16px) saturate(1.8) brightness(1.04);
-  -webkit-backdrop-filter: blur(16px) saturate(1.8) brightness(1.04);
-  border: 1px solid color-mix(in oklch, white 44%, transparent);
+  background: color-mix(in oklch, white 24%, transparent);
+  backdrop-filter: blur(18px) saturate(1.95) brightness(1.08);
+  -webkit-backdrop-filter: blur(18px) saturate(1.95) brightness(1.08);
+  border: 1px solid color-mix(in oklch, white 62%, transparent);
   box-shadow:
-    0 10px 34px -26px color-mix(in oklch, var(--foreground) 45%, transparent),
-    inset 0 1px 0 0 color-mix(in oklch, white 55%, transparent),
-    inset 0 -1px 0 0 color-mix(in oklch, var(--foreground) 8%, transparent);
+    0 12px 34px -28px color-mix(in oklch, var(--foreground) 34%, transparent),
+    inset 0 1px 0 0 color-mix(in oklch, white 76%, transparent),
+    inset 0 -1px 0 0 color-mix(in oklch, var(--foreground) 5%, transparent);
 }
 
 .glass-button:hover .glass-surface {

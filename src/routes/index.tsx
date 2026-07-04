@@ -292,12 +292,12 @@ function PageRail({
           width={38}
           height={66}
           borderRadius={999}
-          backgroundOpacity={0.16}
-          saturation={1.9}
-          distortionScale={-115}
-          redOffset={3}
-          greenOffset={10}
-          blueOffset={16}
+          backgroundOpacity={0.08}
+          saturation={2.15}
+          distortionScale={-58}
+          redOffset={1}
+          greenOffset={4}
+          blueOffset={8}
           contentClassName="pl-1"
         >
           {open ? <ChevronRight className="h-5 w-5" /> : <ChevronLeft className="h-5 w-5" />}
@@ -314,7 +314,7 @@ function PageRail({
             className="fixed right-4 top-1/2 z-30 w-[min(15rem,calc(100vw-2rem))] -translate-y-1/2"
             aria-label="Page menu"
           >
-            <div className="glass-strong rounded-[28px] p-2">
+            <div className="rounded-[28px] border border-white/75 bg-white/18 p-2 shadow-[inset_0_1px_0_rgba(255,255,255,0.88),inset_0_-1px_0_rgba(20,20,20,0.04),0_18px_54px_rgba(20,20,20,0.08)] backdrop-blur-[30px]">
               <RailLink
                 label="Keyboard Game"
                 icon={KeyboardIcon}
@@ -356,12 +356,12 @@ function RailLink({
         width="100%"
         height={46}
         borderRadius={18}
-        backgroundOpacity={0.065}
-        saturation={1.75}
-        distortionScale={-95}
-        redOffset={2}
-        greenOffset={8}
-        blueOffset={14}
+        backgroundOpacity={0.035}
+        saturation={2.2}
+        distortionScale={-44}
+        redOffset={1}
+        greenOffset={4}
+        blueOffset={7}
         contentClassName="justify-start gap-3 px-4"
       >
         <Icon className="h-4 w-4 text-foreground/65 transition-colors group-hover:text-foreground" />
@@ -375,7 +375,7 @@ function PaintBackdrop() {
   return (
     <div aria-hidden className="pointer-events-none absolute inset-0 -z-10 overflow-hidden">
       <div className="aurora absolute inset-0 opacity-70" />
-      <div className="paper-grain absolute inset-0 opacity-20" />
+      <div className="paper-grain absolute inset-0 opacity-8" />
     </div>
   );
 }

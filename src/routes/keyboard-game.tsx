@@ -279,7 +279,25 @@ function KeyboardGame() {
       className="relative h-dvh overflow-hidden bg-background text-foreground outline-none"
     >
       <PaintBackdrop />
-      <main className="relative z-10 mx-auto flex h-dvh max-w-[1760px] flex-col px-4 py-4 md:px-8">
+      <div className="relative z-10 flex h-dvh items-center justify-center px-6 text-center lg:hidden">
+        <div className="max-w-sm rounded-[30px] border border-white/75 bg-white/22 px-6 py-7 shadow-[inset_0_1px_0_rgba(255,255,255,0.88),0_24px_80px_rgba(20,20,20,0.1)] backdrop-blur-[30px]">
+          <p className="text-xs font-black uppercase tracking-[0.22em] text-violet-500">
+            keyboard game
+          </p>
+          <h1 className="mt-2 text-2xl font-black text-foreground">Large screen only</h1>
+          <p className="mt-3 text-sm font-semibold leading-6 text-muted-foreground">
+            This 60 second typing challenge needs a physical keyboard and a wide screen.
+          </p>
+          <Link
+            to="/"
+            className="mt-5 inline-flex h-11 items-center justify-center rounded-full border border-white/70 bg-white/30 px-5 text-sm font-black text-foreground shadow-[inset_0_1px_0_rgba(255,255,255,0.85),0_14px_34px_rgba(20,20,20,0.08)] backdrop-blur-2xl"
+          >
+            Home
+          </Link>
+        </div>
+      </div>
+
+      <main className="relative z-10 mx-auto hidden h-dvh max-w-[1760px] flex-col px-4 py-4 md:px-8 lg:flex">
         <header className="flex shrink-0 items-center justify-between gap-4">
           <div className="flex items-center gap-3">
             <Link to="/" className="glass-button text-sm font-medium text-foreground/80">
@@ -410,24 +428,28 @@ function KeyboardGame() {
       </main>
 
       {result && (
-        <LeaderboardModal
-          result={result}
-          leaderboard={leaderboard}
-          displayName={displayName}
-          onDisplayNameChange={setDisplayName}
-          onSave={saveScore}
-          onRetry={resetChallenge}
-        />
+        <div className="hidden lg:block">
+          <LeaderboardModal
+            result={result}
+            leaderboard={leaderboard}
+            displayName={displayName}
+            onDisplayNameChange={setDisplayName}
+            onSave={saveScore}
+            onRetry={resetChallenge}
+          />
+        </div>
       )}
 
       {leaderboardOpen && (
-        <LeaderboardOnlyModal
-          leaderboard={leaderboard}
-          onClose={() => {
-            setLeaderboardOpen(false);
-            window.requestAnimationFrame(() => pageRef.current?.focus());
-          }}
-        />
+        <div className="hidden lg:block">
+          <LeaderboardOnlyModal
+            leaderboard={leaderboard}
+            onClose={() => {
+              setLeaderboardOpen(false);
+              window.requestAnimationFrame(() => pageRef.current?.focus());
+            }}
+          />
+        </div>
       )}
     </div>
   );
@@ -725,7 +747,7 @@ function PaintBackdrop() {
   return (
     <div aria-hidden className="pointer-events-none absolute inset-0 -z-10 overflow-hidden">
       <div className="aurora absolute inset-0 opacity-60" />
-      <div className="paper-grain absolute inset-0 opacity-20" />
+      <div className="paper-grain absolute inset-0 opacity-8" />
     </div>
   );
 }
