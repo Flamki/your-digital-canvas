@@ -1,5 +1,6 @@
 import { Download, ExternalLink, FileText } from "lucide-react";
 import GlassSurface from "@/components/GlassSurface";
+import { RESUME_URL } from "@/lib/resume";
 import {
   Dialog,
   DialogContent,
@@ -7,8 +8,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-
-export const RESUME_URL = "/Ayush_Singh_Resume.pdf";
 
 type ResumeDialogProps = {
   open: boolean;

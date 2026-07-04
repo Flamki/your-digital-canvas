@@ -15,8 +15,8 @@ import {
 } from "lucide-react";
 import BorderGlow from "@/components/BorderGlow";
 import GlassSurface from "@/components/GlassSurface";
-import { ResumeDialog, RESUME_URL } from "@/components/ResumeDialog";
 import avatarUrl from "@/assets/ayush-avatar.png";
+import { RESUME_URL } from "@/lib/resume";
 
 const CHAT_SUGGESTIONS = [
   { label: "Me", icon: Smile, prompt: "Who are you? I want to know more about you." },
@@ -38,7 +38,6 @@ const CHAT_SUGGESTIONS = [
 export function ChatPortfolio({ initialPrompt }: { initialPrompt?: string }) {
   const [input, setInput] = useState("");
   const [inputFocused, setInputFocused] = useState(false);
-  const [resumeOpen, setResumeOpen] = useState(false);
   const [shineKey, setShineKey] = useState(0);
   const scrollRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -83,8 +82,7 @@ export function ChatPortfolio({ initialPrompt }: { initialPrompt?: string }) {
   const lastIsUser = messages.length > 0 && messages[messages.length - 1].role === "user";
   const showThinking = isLoading && lastIsUser;
   const hasAssistantResponse = messages.some((message) => message.role === "assistant");
-  const showSuggestions =
-    messages.length === 0 && !input.trim() && !inputFocused && !isLoading && !resumeOpen;
+  const showSuggestions = messages.length === 0 && !input.trim() && !inputFocused && !isLoading;
 
   return (
     <div className="relative flex h-full flex-col">
@@ -131,11 +129,7 @@ export function ChatPortfolio({ initialPrompt }: { initialPrompt?: string }) {
                     transition={{ duration: 0.3, ease: "easeOut" }}
                     className="w-full"
                   >
-                    {text ? (
-                      <AssistantMessage text={text} onResumeClick={() => setResumeOpen(true)} />
-                    ) : (
-                      <ThinkingDots />
-                    )}
+                    {text ? <AssistantMessage text={text} /> : <ThinkingDots />}
                   </motion.div>
                 );
               })}
@@ -180,7 +174,7 @@ export function ChatPortfolio({ initialPrompt }: { initialPrompt?: string }) {
                   onClick={() => {
                     if ("action" in suggestion && suggestion.action === "resume") {
                       setInputFocused(true);
-                      setResumeOpen(true);
+                      window.location.assign("/resume");
                       return;
                     }
                     submit(suggestion.prompt);
@@ -275,12 +269,11 @@ export function ChatPortfolio({ initialPrompt }: { initialPrompt?: string }) {
           </div>
         </BorderGlow>
       </form>
-      <ResumeDialog open={resumeOpen} onOpenChange={setResumeOpen} />
     </div>
   );
 }
 
-function AssistantMessage({ text, onResumeClick }: { text: string; onResumeClick: () => void }) {
+function AssistantMessage({ text }: { text: string }) {
   const blocks = toMarkdownBlocks(text);
 
   return (
@@ -292,7 +285,7 @@ function AssistantMessage({ text, onResumeClick }: { text: string; onResumeClick
               key={index}
               className="pt-1 text-2xl font-bold leading-tight text-foreground md:text-3xl"
             >
-              {renderInline(block.text, onResumeClick)}
+              {renderInline(block.text)}
             </h2>
           );
         }
@@ -300,7 +293,7 @@ function AssistantMessage({ text, onResumeClick }: { text: string; onResumeClick
         if (block.type === "subheading") {
           return (
             <h3 key={index} className="pt-2 text-lg font-semibold leading-snug text-foreground">
-              {renderInline(block.text, onResumeClick)}
+              {renderInline(block.text)}
             </h3>
           );
         }
@@ -311,7 +304,7 @@ function AssistantMessage({ text, onResumeClick }: { text: string; onResumeClick
               {block.items.map((item, itemIndex) => (
                 <li key={itemIndex} className="flex gap-3">
                   <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-chat-user" />
-                  <span className="min-w-0">{renderInline(item, onResumeClick)}</span>
+                  <span className="min-w-0">{renderInline(item)}</span>
                 </li>
               ))}
             </ul>
@@ -320,7 +313,7 @@ function AssistantMessage({ text, onResumeClick }: { text: string; onResumeClick
 
         return (
           <p key={index} className="text-pretty">
-            {renderInline(block.text, onResumeClick)}
+            {renderInline(block.text)}
           </p>
         );
       })}
@@ -397,7 +390,7 @@ function toMarkdownBlocks(text: string): MarkdownBlock[] {
   return blocks;
 }
 
-function renderInline(text: string, onResumeClick: () => void): ReactNode[] {
+function renderInline(text: string): ReactNode[] {
   const nodes: ReactNode[] = [];
   const pattern = /(\*\*[^*]+\*\*|\*[^*\n]+\*|\[[^\]]+\]\([^)]+\)|`[^`]+`|https?:\/\/[^\s)]+)/g;
   let lastIndex = 0;
@@ -412,13 +405,13 @@ function renderInline(text: string, onResumeClick: () => void): ReactNode[] {
     if (token.startsWith("**")) {
       nodes.push(
         <strong key={nodes.length} className="font-semibold text-foreground">
-          {renderInline(token.slice(2, -2), onResumeClick)}
+          {renderInline(token.slice(2, -2))}
         </strong>,
       );
     } else if (token.startsWith("*")) {
       nodes.push(
         <em key={nodes.length} className="italic text-foreground/90">
-          {renderInline(token.slice(1, -1), onResumeClick)}
+          {renderInline(token.slice(1, -1))}
         </em>,
       );
     } else if (token.startsWith("[")) {
@@ -427,7 +420,7 @@ function renderInline(text: string, onResumeClick: () => void): ReactNode[] {
         const href = getCanonicalProjectHref(linkMatch[1], linkMatch[2]);
         nodes.push(
           isResumeLink(linkMatch[1], href) ? (
-            <GlassLink key={nodes.length} label={linkMatch[1]} onClick={onResumeClick} />
+            <GlassLink key={nodes.length} href="/resume" label={linkMatch[1]} />
           ) : (
             <GlassLink key={nodes.length} href={href} label={linkMatch[1]} />
           ),
@@ -449,7 +442,7 @@ function renderInline(text: string, onResumeClick: () => void): ReactNode[] {
       const canonicalHref = getCanonicalProjectHref("", href);
       nodes.push(
         isResumeLink("", canonicalHref) ? (
-          <GlassLink key={nodes.length} label="Preview resume" onClick={onResumeClick} />
+          <GlassLink key={nodes.length} href="/resume" label="Preview resume" />
         ) : (
           <GlassLink key={nodes.length} href={canonicalHref} label={getLinkLabel(canonicalHref)} />
         ),
@@ -467,21 +460,13 @@ function renderInline(text: string, onResumeClick: () => void): ReactNode[] {
   return nodes.map((node, index) => <Fragment key={index}>{node}</Fragment>);
 }
 
-function GlassLink({
-  href,
-  label,
-  onClick,
-}: {
-  href?: string;
-  label: string;
-  onClick?: () => void;
-}) {
-  if (onClick) {
+function GlassLink({ href, label }: { href?: string; label: string }) {
+  if (href?.startsWith("/")) {
     return (
-      <button type="button" onClick={onClick} className="glass-link-action">
+      <a href={href} className="glass-link-action">
         <span className="min-w-0 truncate">{label}</span>
         <FileText className="h-3.5 w-3.5 shrink-0 text-foreground/65" />
-      </button>
+      </a>
     );
   }
 

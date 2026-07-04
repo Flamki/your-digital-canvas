@@ -6,7 +6,6 @@ import {
   ChevronLeft,
   ChevronRight,
   FileText,
-  Home,
   Keyboard as KeyboardIcon,
   Layers,
   PartyPopper,
@@ -17,7 +16,6 @@ import {
 import { useEffect, useState } from "react";
 import { ChatPortfolio } from "@/components/ChatPortfolio";
 import GlassSurface from "@/components/GlassSurface";
-import { ResumeDialog } from "@/components/ResumeDialog";
 import SplashCursor from "@/components/SplashCursor";
 import avatarUrl from "@/assets/ayush-avatar.png";
 
@@ -113,7 +111,6 @@ const QUICK_ACTIONS = [
 
 function Index() {
   const [chatOpen, setChatOpen] = useState(false);
-  const [resumeOpen, setResumeOpen] = useState(false);
   const [sideNavOpen, setSideNavOpen] = useState(false);
   const [seed, setSeed] = useState<string | null>(null);
 
@@ -202,73 +199,85 @@ function Index() {
           className="mb-1 mt-5 flex w-full max-w-2xl flex-wrap items-center justify-center gap-3"
         >
           {QUICK_ACTIONS.map(({ label, icon: Icon, ...action }) => (
-            <button
+            <QuickActionButton
               key={label}
-              onClick={() => {
-                if ("action" in action && action.action === "resume") {
-                  setResumeOpen(true);
-                  return;
-                }
-                openChat(action.prompt);
-              }}
-              className="glass-button min-w-[92px] text-sm font-medium text-foreground/90"
-              aria-label={
-                "action" in action && action.action === "resume"
-                  ? "Preview and download resume"
-                  : action.prompt
-              }
-            >
-              <GlassSurface
-                width="100%"
-                height={68}
-                borderRadius={18}
-                backgroundOpacity={0.075}
-                saturation={1.75}
-                distortionScale={-120}
-                redOffset={3}
-                greenOffset={10}
-                blueOffset={18}
-                contentClassName="flex-col gap-1.5 px-5 py-3"
-              >
-                <Icon className="h-4 w-4 text-foreground/70" />
-                {label}
-              </GlassSurface>
-            </button>
+              label={label}
+              icon={Icon}
+              prompt={"prompt" in action ? action.prompt : undefined}
+              to={"action" in action && action.action === "resume" ? "/resume" : undefined}
+              onPrompt={openChat}
+            />
           ))}
         </motion.div>
       </main>
 
-      <PageRail
-        open={sideNavOpen}
-        onOpenChange={setSideNavOpen}
-        onHome={() => {
-          setChatOpen(false);
-          setSideNavOpen(false);
-        }}
-        onResume={() => {
-          setResumeOpen(true);
-          setSideNavOpen(false);
-        }}
-        onPrompt={openChat}
-      />
+      <PageRail open={sideNavOpen} onOpenChange={setSideNavOpen} />
       <ChatDrawer open={chatOpen} onClose={() => setChatOpen(false)} initialPrompt={seed} />
-      <ResumeDialog open={resumeOpen} onOpenChange={setResumeOpen} />
     </div>
+  );
+}
+
+function QuickActionButton({
+  label,
+  icon: Icon,
+  prompt,
+  to,
+  onPrompt,
+}: {
+  label: string;
+  icon: typeof Smile;
+  prompt?: string;
+  to?: "/resume";
+  onPrompt: (prompt?: string) => void;
+}) {
+  const content = (
+    <GlassSurface
+      width="100%"
+      height={68}
+      borderRadius={18}
+      backgroundOpacity={0.075}
+      saturation={1.75}
+      distortionScale={-120}
+      redOffset={3}
+      greenOffset={10}
+      blueOffset={18}
+      contentClassName="flex-col gap-1.5 px-5 py-3"
+    >
+      <Icon className="h-4 w-4 text-foreground/70" />
+      {label}
+    </GlassSurface>
+  );
+
+  if (to) {
+    return (
+      <Link
+        to={to}
+        className="glass-button min-w-[92px] text-sm font-medium text-foreground/90"
+        aria-label="Preview and download resume"
+      >
+        {content}
+      </Link>
+    );
+  }
+
+  return (
+    <button
+      type="button"
+      onClick={() => onPrompt(prompt)}
+      className="glass-button min-w-[92px] text-sm font-medium text-foreground/90"
+      aria-label={prompt}
+    >
+      {content}
+    </button>
   );
 }
 
 function PageRail({
   open,
   onOpenChange,
-  onHome,
-  onResume,
-  onPrompt,
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onHome: () => void;
-  onResume: () => void;
-  onPrompt: (prompt?: string) => void;
 }) {
   return (
     <>
@@ -306,27 +315,18 @@ function PageRail({
             aria-label="Page menu"
           >
             <div className="glass-strong rounded-[28px] p-2">
-              <RailButton label="Home" icon={Home} onClick={onHome} />
               <RailLink
                 label="Keyboard Game"
                 icon={KeyboardIcon}
                 to="/keyboard-game"
                 onClick={() => onOpenChange(false)}
               />
-              {QUICK_ACTIONS.map(({ label, icon: Icon, ...action }) => (
-                <RailButton
-                  key={label}
-                  label={label}
-                  icon={Icon}
-                  onClick={() => {
-                    if ("action" in action && action.action === "resume") {
-                      onResume();
-                      return;
-                    }
-                    onPrompt(action.prompt);
-                  }}
-                />
-              ))}
+              <RailLink
+                label="Resume"
+                icon={FileText}
+                to="/resume"
+                onClick={() => onOpenChange(false)}
+              />
             </div>
           </motion.nav>
         )}
@@ -343,7 +343,7 @@ function RailLink({
 }: {
   label: string;
   icon: typeof Smile;
-  to: "/keyboard-game";
+  to: "/keyboard-game" | "/resume";
   onClick: () => void;
 }) {
   return (
@@ -368,40 +368,6 @@ function RailLink({
         <span>{label}</span>
       </GlassSurface>
     </Link>
-  );
-}
-
-function RailButton({
-  label,
-  icon: Icon,
-  onClick,
-}: {
-  label: string;
-  icon: typeof Smile;
-  onClick: () => void;
-}) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      className="glass-button group w-full text-left text-sm font-medium text-foreground/85"
-    >
-      <GlassSurface
-        width="100%"
-        height={46}
-        borderRadius={18}
-        backgroundOpacity={0.065}
-        saturation={1.75}
-        distortionScale={-95}
-        redOffset={2}
-        greenOffset={8}
-        blueOffset={14}
-        contentClassName="justify-start gap-3 px-4"
-      >
-        <Icon className="h-4 w-4 text-foreground/65 transition-colors group-hover:text-foreground" />
-        <span>{label}</span>
-      </GlassSurface>
-    </button>
   );
 }
 
