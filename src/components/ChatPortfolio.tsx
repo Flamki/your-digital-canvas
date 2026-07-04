@@ -45,10 +45,13 @@ export function ChatPortfolio({ initialPrompt }: { initialPrompt?: string }) {
   const [shineKey, setShineKey] = useState(0);
   const [voiceEnabled, setVoiceEnabled] = useState(true);
   const [speechSupported, setSpeechSupported] = useState(false);
-  const [speechSynthesisSupported, setSpeechSynthesisSupported] = useState(false);
+  const [audioPlaybackSupported, setAudioPlaybackSupported] = useState(false);
   const [isListening, setIsListening] = useState(false);
+  const [isSpeaking, setIsSpeaking] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+  const audioObjectUrlRef = useRef("");
   const recognitionRef = useRef<BrowserSpeechRecognition | null>(null);
   const finalTranscriptRef = useRef("");
   const liveTranscriptRef = useRef("");
@@ -62,17 +65,29 @@ export function ChatPortfolio({ initialPrompt }: { initialPrompt?: string }) {
 
   const isLoading = status === "submitted" || status === "streaming";
 
+  const stopVoicePlayback = useCallback(() => {
+    audioRef.current?.pause();
+    audioRef.current = null;
+    window.speechSynthesis?.cancel();
+    setIsSpeaking(false);
+
+    if (audioObjectUrlRef.current) {
+      URL.revokeObjectURL(audioObjectUrlRef.current);
+      audioObjectUrlRef.current = "";
+    }
+  }, []);
+
   const submit = useCallback(
     async (text: string) => {
       const value = text.trim();
       if (!value || isLoading) return;
-      window.speechSynthesis?.cancel();
+      stopVoicePlayback();
       setShineKey((key) => key + 1);
       setInput("");
       setMessages([]);
       await sendMessage({ text: value });
     },
-    [isLoading, sendMessage, setMessages],
+    [isLoading, sendMessage, setMessages, stopVoicePlayback],
   );
 
   const submitRef = useRef(submit);
@@ -89,7 +104,7 @@ export function ChatPortfolio({ initialPrompt }: { initialPrompt?: string }) {
     return latestAssistantMessage ? getMessageText(latestAssistantMessage) : "";
   }, [latestAssistantMessage]);
 
-  const speakText = useCallback((text: string) => {
+  const speakWithBrowserFallback = useCallback((text: string) => {
     if (typeof window === "undefined" || !("speechSynthesis" in window)) return;
 
     const cleanText = cleanTextForSpeech(text);
@@ -108,16 +123,58 @@ export function ChatPortfolio({ initialPrompt }: { initialPrompt?: string }) {
       voices.find((voice) => voice.lang.toLowerCase().startsWith("en"));
 
     if (preferredVoice) utterance.voice = preferredVoice;
+    utterance.onend = () => setIsSpeaking(false);
+    utterance.onerror = () => setIsSpeaking(false);
+    setIsSpeaking(true);
     window.speechSynthesis.speak(utterance);
   }, []);
+
+  const speakText = useCallback(
+    async (text: string) => {
+      if (typeof window === "undefined") return;
+
+      const cleanText = cleanTextForSpeech(text);
+      if (!cleanText) return;
+
+      stopVoicePlayback();
+
+      try {
+        const response = await fetch("/api/tts", {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({ text: cleanText }),
+        });
+
+        if (!response.ok) throw new Error(`TTS failed with ${response.status}`);
+
+        const audioBlob = await response.blob();
+        const objectUrl = URL.createObjectURL(audioBlob);
+        const audio = new Audio(objectUrl);
+        audioObjectUrlRef.current = objectUrl;
+        audioRef.current = audio;
+
+        audio.onended = stopVoicePlayback;
+        audio.onerror = () => {
+          stopVoicePlayback();
+          speakWithBrowserFallback(cleanText);
+        };
+
+        setIsSpeaking(true);
+        await audio.play();
+      } catch {
+        speakWithBrowserFallback(cleanText);
+      }
+    },
+    [speakWithBrowserFallback, stopVoicePlayback],
+  );
 
   const toggleVoice = () => {
     setVoiceEnabled((enabled) => {
       const next = !enabled;
       if (!next) {
-        window.speechSynthesis?.cancel();
+        stopVoicePlayback();
       } else if (latestAssistantText) {
-        window.setTimeout(() => speakText(latestAssistantText), 0);
+        window.setTimeout(() => void speakText(latestAssistantText), 0);
       }
       return next;
     });
@@ -132,7 +189,7 @@ export function ChatPortfolio({ initialPrompt }: { initialPrompt?: string }) {
     const Recognition = getSpeechRecognitionConstructor();
     if (!Recognition || isLoading) return;
 
-    window.speechSynthesis?.cancel();
+    stopVoicePlayback();
     recognitionRef.current?.abort();
     finalTranscriptRef.current = "";
     liveTranscriptRef.current = "";
@@ -180,7 +237,7 @@ export function ChatPortfolio({ initialPrompt }: { initialPrompt?: string }) {
     setInput("");
     setIsListening(true);
     recognition.start();
-  }, [isLoading]);
+  }, [isLoading, stopVoicePlayback]);
 
   const toggleListening = () => {
     if (isListening) {
@@ -204,27 +261,27 @@ export function ChatPortfolio({ initialPrompt }: { initialPrompt?: string }) {
 
   useEffect(() => {
     setSpeechSupported(Boolean(getSpeechRecognitionConstructor()));
-    setSpeechSynthesisSupported("speechSynthesis" in window);
+    setAudioPlaybackSupported("Audio" in window);
 
     return () => {
       recognitionRef.current?.abort();
-      window.speechSynthesis?.cancel();
+      stopVoicePlayback();
     };
-  }, []);
+  }, [stopVoicePlayback]);
 
   useEffect(() => {
-    if (!voiceEnabled || !speechSynthesisSupported || isLoading) return;
+    if (!voiceEnabled || !audioPlaybackSupported || isLoading) return;
     if (!latestAssistantMessage || !latestAssistantText.trim()) return;
     if (lastSpokenMessageIdRef.current === latestAssistantMessage.id) return;
 
     lastSpokenMessageIdRef.current = latestAssistantMessage.id;
-    speakText(latestAssistantText);
+    void speakText(latestAssistantText);
   }, [
+    audioPlaybackSupported,
     isLoading,
     latestAssistantMessage,
     latestAssistantText,
     speakText,
-    speechSynthesisSupported,
     voiceEnabled,
   ]);
 
@@ -403,10 +460,10 @@ export function ChatPortfolio({ initialPrompt }: { initialPrompt?: string }) {
             <button
               type="button"
               onClick={toggleVoice}
-              disabled={!speechSynthesisSupported}
+              disabled={!audioPlaybackSupported}
               className="glass-button shrink-0 text-foreground disabled:pointer-events-none disabled:opacity-35"
-              aria-label={voiceEnabled ? "Turn voice off" : "Turn voice on"}
-              title={voiceEnabled ? "Voice on" : "Voice off"}
+              aria-label={voiceEnabled ? "Turn neural voice off" : "Turn neural voice on"}
+              title={voiceEnabled ? "Neural voice on" : "Neural voice off"}
             >
               <GlassSurface
                 width={38}
@@ -418,7 +475,13 @@ export function ChatPortfolio({ initialPrompt }: { initialPrompt?: string }) {
                 redOffset={0}
                 greenOffset={0}
                 blueOffset={0}
-                className={voiceEnabled ? "chat-voice-surface is-active" : "chat-voice-surface"}
+                className={
+                  isSpeaking
+                    ? "chat-voice-surface is-speaking"
+                    : voiceEnabled
+                      ? "chat-voice-surface is-active"
+                      : "chat-voice-surface"
+                }
               >
                 {voiceEnabled ? <Volume2 className="h-4 w-4" /> : <VolumeX className="h-4 w-4" />}
               </GlassSurface>
