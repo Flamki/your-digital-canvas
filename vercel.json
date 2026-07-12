@@ -36,11 +36,20 @@
       ]
     },
     {
-      "source": "/(favicon.png|og-image.png)",
+      "source": "/(favicon.png|og-image-v2.png|sounds/(.*))",
       "headers": [
         {
           "key": "Cache-Control",
           "value": "public, max-age=31536000, immutable"
+        }
+      ]
+    },
+    {
+      "source": "/Ayush_Singh_Resume.pdf",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=86400, stale-while-revalidate=604800"
         }
       ]
     }

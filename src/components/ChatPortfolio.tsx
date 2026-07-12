@@ -941,7 +941,7 @@ function AssistantMessage({ text }: { text: string }) {
 }
 
 function GuidedProofCard({ proof }: { proof: GuidedProof }) {
-  const href = `/proof?focus=${encodeURIComponent(proof.id)}&guided=1`;
+  const href = `/quick-portfolio?focus=${encodeURIComponent(proof.id)}&guided=1`;
 
   return (
     <motion.a

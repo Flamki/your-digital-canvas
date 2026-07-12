@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as ResumeRouteImport } from './routes/resume'
+import { Route as QuickPortfolioRouteImport } from './routes/quick-portfolio'
 import { Route as ProofRouteImport } from './routes/proof'
 import { Route as KeyboardGameRouteImport } from './routes/keyboard-game'
 import { Route as IndexRouteImport } from './routes/index'
@@ -20,6 +21,11 @@ import { Route as ApiChatRouteImport } from './routes/api/chat'
 const ResumeRoute = ResumeRouteImport.update({
   id: '/resume',
   path: '/resume',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const QuickPortfolioRoute = QuickPortfolioRouteImport.update({
+  id: '/quick-portfolio',
+  path: '/quick-portfolio',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ProofRoute = ProofRouteImport.update({
@@ -57,6 +63,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/keyboard-game': typeof KeyboardGameRoute
   '/proof': typeof ProofRoute
+  '/quick-portfolio': typeof QuickPortfolioRoute
   '/resume': typeof ResumeRoute
   '/api/chat': typeof ApiChatRoute
   '/api/keyboard-leaderboard': typeof ApiKeyboardLeaderboardRoute
@@ -66,6 +73,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/keyboard-game': typeof KeyboardGameRoute
   '/proof': typeof ProofRoute
+  '/quick-portfolio': typeof QuickPortfolioRoute
   '/resume': typeof ResumeRoute
   '/api/chat': typeof ApiChatRoute
   '/api/keyboard-leaderboard': typeof ApiKeyboardLeaderboardRoute
@@ -76,6 +84,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/keyboard-game': typeof KeyboardGameRoute
   '/proof': typeof ProofRoute
+  '/quick-portfolio': typeof QuickPortfolioRoute
   '/resume': typeof ResumeRoute
   '/api/chat': typeof ApiChatRoute
   '/api/keyboard-leaderboard': typeof ApiKeyboardLeaderboardRoute
@@ -87,6 +96,7 @@ export interface FileRouteTypes {
     | '/'
     | '/keyboard-game'
     | '/proof'
+    | '/quick-portfolio'
     | '/resume'
     | '/api/chat'
     | '/api/keyboard-leaderboard'
@@ -96,6 +106,7 @@ export interface FileRouteTypes {
     | '/'
     | '/keyboard-game'
     | '/proof'
+    | '/quick-portfolio'
     | '/resume'
     | '/api/chat'
     | '/api/keyboard-leaderboard'
@@ -105,6 +116,7 @@ export interface FileRouteTypes {
     | '/'
     | '/keyboard-game'
     | '/proof'
+    | '/quick-portfolio'
     | '/resume'
     | '/api/chat'
     | '/api/keyboard-leaderboard'
@@ -115,6 +127,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   KeyboardGameRoute: typeof KeyboardGameRoute
   ProofRoute: typeof ProofRoute
+  QuickPortfolioRoute: typeof QuickPortfolioRoute
   ResumeRoute: typeof ResumeRoute
   ApiChatRoute: typeof ApiChatRoute
   ApiKeyboardLeaderboardRoute: typeof ApiKeyboardLeaderboardRoute
@@ -128,6 +141,13 @@ declare module '@tanstack/react-router' {
       path: '/resume'
       fullPath: '/resume'
       preLoaderRoute: typeof ResumeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/quick-portfolio': {
+      id: '/quick-portfolio'
+      path: '/quick-portfolio'
+      fullPath: '/quick-portfolio'
+      preLoaderRoute: typeof QuickPortfolioRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/proof': {
@@ -179,6 +199,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   KeyboardGameRoute: KeyboardGameRoute,
   ProofRoute: ProofRoute,
+  QuickPortfolioRoute: QuickPortfolioRoute,
   ResumeRoute: ResumeRoute,
   ApiChatRoute: ApiChatRoute,
   ApiKeyboardLeaderboardRoute: ApiKeyboardLeaderboardRoute,

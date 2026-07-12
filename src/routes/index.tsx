@@ -1,5 +1,4 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import {
   ArrowRight,
   Briefcase,
@@ -16,8 +15,7 @@ import {
   UserSearch,
   X,
 } from "lucide-react";
-import { lazy, Suspense, useEffect, useRef, useState } from "react";
-import GlassSurface from "@/components/GlassSurface";
+import { lazy, Suspense, useEffect, useRef, useState, type ReactNode } from "react";
 import avatarUrl from "@/assets/ayush-avatar.webp";
 
 const LazyChatPortfolio = lazy(() =>
@@ -111,7 +109,7 @@ const QUICK_ACTIONS = [
   { label: "Me", icon: Smile, prompt: "Tell me about yourself." },
   { label: "Projects", icon: Briefcase, prompt: "Show me your projects." },
   { label: "Skills", icon: Layers, prompt: "What are your top skills?" },
-  { label: "Proof", icon: Orbit, action: "proof" },
+  { label: "Portfolio", icon: Orbit, action: "portfolio" },
   { label: "Resume", icon: FileText, action: "resume" },
   { label: "Contact", icon: UserSearch, prompt: "How can I contact or hire you?" },
 ] as const;
@@ -132,25 +130,23 @@ function Index() {
   const [seed, setSeed] = useState<string | null>(null);
   const [roleIndex, setRoleIndex] = useState(0);
   const [showDesktopCursor, setShowDesktopCursor] = useState(false);
-  const prefersReducedMotion = useReducedMotion();
+  const lightweightMode = useLightweightMode();
 
   useEffect(() => {
-    if (prefersReducedMotion) return;
-
     const interval = window.setInterval(() => {
       setRoleIndex((index) => (index + 1) % ROTATING_ROLES.length);
     }, 7000);
 
     return () => window.clearInterval(interval);
-  }, [prefersReducedMotion]);
+  }, []);
 
   useEffect(() => {
-    if (prefersReducedMotion) return;
+    if (lightweightMode) return;
     if (!window.matchMedia("(min-width: 768px) and (pointer: fine)").matches) return;
 
     const timeout = window.setTimeout(() => setShowDesktopCursor(true), 700);
     return () => window.clearTimeout(timeout);
-  }, [prefersReducedMotion]);
+  }, [lightweightMode]);
 
   const openChat = (prompt?: string) => {
     setSeed(prompt ?? null);
@@ -164,46 +160,31 @@ function Index() {
       {showDesktopCursor && (
         <Suspense fallback={null}>
           <LazySplashCursor
+            SIM_RESOLUTION={96}
+            DYE_RESOLUTION={512}
             DENSITY_DISSIPATION={1}
             VELOCITY_DISSIPATION={0.5}
             PRESSURE={0.6}
+            PRESSURE_ITERATIONS={12}
             COLOR_UPDATE_SPEED={27}
             SHADING={false}
           />
         </Suspense>
       )}
 
-      <main className="relative z-10 mx-auto flex h-dvh max-w-3xl flex-col items-center px-6 pb-5 pt-[9vh] md:pt-[10vh]">
-        <motion.p
-          initial={{ opacity: 0, y: -8 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
-          className="text-base font-medium text-foreground/80"
-        >
+      <main className="home-main relative z-10 mx-auto flex h-dvh max-w-3xl flex-col items-center px-6 pb-5 pt-[9vh] md:pt-[10vh]">
+        <p className="home-enter text-base font-medium text-foreground/80">
           Hey, I'm Ayush <span className="inline-block">👋</span>
-        </motion.p>
+        </p>
 
-        <motion.h1
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.05 }}
-          className="font-display mt-2 flex h-[1.15em] w-full items-center justify-center text-center text-5xl font-bold leading-none tracking-tight text-foreground md:text-8xl"
-        >
+        <h1 className="home-enter home-enter-delay-1 font-display mt-2 flex h-[1.15em] w-full items-center justify-center text-center text-5xl font-bold leading-none tracking-tight text-foreground md:text-8xl">
           <span className="sr-only">{ROTATING_ROLES.join(", ")}</span>
           <span aria-hidden className="flex h-[1.2em] w-full items-center justify-center px-2">
-            <ScrambleRole
-              text={ROTATING_ROLES[roleIndex]}
-              reducedMotion={Boolean(prefersReducedMotion)}
-            />
+            <ScrambleRole text={ROTATING_ROLES[roleIndex]} reducedMotion={lightweightMode} />
           </span>
-        </motion.h1>
+        </h1>
 
-        <motion.div
-          initial={{ opacity: 0, scale: 0.9 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 0.6, delay: 0.15, type: "spring", bounce: 0.35 }}
-          className="flex flex-1 items-center justify-center py-4 md:py-5"
-        >
+        <div className="home-enter home-enter-delay-2 flex flex-1 items-center justify-center py-4 md:py-5">
           <img
             src={avatarUrl}
             alt="Ayush avatar"
@@ -211,43 +192,24 @@ function Index() {
             height={512}
             fetchPriority="high"
             decoding="async"
-            className="h-40 w-64 select-none object-contain drop-shadow-[0_20px_40px_rgba(0,0,0,0.15)] md:h-52 md:w-80"
+            className="home-avatar h-40 w-64 select-none object-contain drop-shadow-[0_20px_40px_rgba(0,0,0,0.15)] md:h-52 md:w-80"
             draggable={false}
           />
-        </motion.div>
+        </div>
 
-        <motion.button
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.25 }}
+        <button
           onClick={() => openChat()}
-          className="glass-button group w-full max-w-xl text-left text-muted-foreground"
+          className="glass-button home-chat-trigger home-enter home-enter-delay-3 group w-full max-w-xl text-left text-muted-foreground"
         >
-          <GlassSurface
-            width="100%"
-            height={68}
-            borderRadius={999}
-            backgroundOpacity={0.08}
-            saturation={1.85}
-            distortionScale={-135}
-            redOffset={4}
-            greenOffset={12}
-            blueOffset={22}
-            contentClassName="justify-between px-6"
-          >
+          <PremiumSurface className="h-[68px] justify-between rounded-full px-6">
             <span className="text-base">Ask me anything…</span>
             <span className="flex h-9 w-9 items-center justify-center rounded-full bg-foreground text-background transition-transform group-hover:scale-105">
               <ArrowRight className="h-4 w-4" />
             </span>
-          </GlassSurface>
-        </motion.button>
+          </PremiumSurface>
+        </button>
 
-        <motion.div
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.35 }}
-          className="mb-1 mt-5 flex w-full max-w-2xl flex-wrap items-center justify-center gap-3"
-        >
+        <div className="home-actions home-enter home-enter-delay-4 mb-1 mt-5 flex w-full max-w-2xl flex-wrap items-center justify-center gap-3">
           {QUICK_ACTIONS.map(({ label, icon: Icon, ...action }) => (
             <QuickActionButton
               key={label}
@@ -255,12 +217,16 @@ function Index() {
               icon={Icon}
               prompt={"prompt" in action ? action.prompt : undefined}
               to={
-                "action" in action ? (action.action === "resume" ? "/resume" : "/proof") : undefined
+                "action" in action
+                  ? action.action === "resume"
+                    ? "/resume"
+                    : "/quick-portfolio"
+                  : undefined
               }
               onPrompt={openChat}
             />
           ))}
-        </motion.div>
+        </div>
       </main>
 
       <PageRail open={sideNavOpen} onOpenChange={setSideNavOpen} />
@@ -337,33 +303,22 @@ function QuickActionButton({
   label: string;
   icon: typeof Smile;
   prompt?: string;
-  to?: "/resume" | "/proof";
+  to?: "/resume" | "/quick-portfolio";
   onPrompt: (prompt?: string) => void;
 }) {
   const content = (
-    <GlassSurface
-      width="100%"
-      height={68}
-      borderRadius={18}
-      backgroundOpacity={0.075}
-      saturation={1.75}
-      distortionScale={-120}
-      redOffset={3}
-      greenOffset={10}
-      blueOffset={18}
-      contentClassName="flex-col gap-1.5 px-5 py-3"
-    >
+    <PremiumSurface className="h-[68px] flex-col gap-1.5 rounded-[18px] px-5 py-3">
       <Icon className="h-4 w-4 text-foreground/70" />
       {label}
-    </GlassSurface>
+    </PremiumSurface>
   );
 
   if (to) {
     return (
       <Link
         to={to}
-        className="glass-button min-w-[92px] text-sm font-medium text-foreground/90"
-        aria-label={to === "/resume" ? "Preview and download resume" : "Explore proof of work"}
+        className="glass-button home-quick-action min-w-[92px] text-sm font-medium text-foreground/90"
+        aria-label={to === "/resume" ? "Preview and download resume" : "Open quick portfolio"}
       >
         {content}
       </Link>
@@ -374,7 +329,7 @@ function QuickActionButton({
     <button
       type="button"
       onClick={() => onPrompt(prompt)}
-      className="glass-button min-w-[92px] text-sm font-medium text-foreground/90"
+      className="glass-button home-quick-action min-w-[92px] text-sm font-medium text-foreground/90"
       aria-label={prompt}
     >
       {content}
@@ -398,73 +353,56 @@ function PageRail({
         aria-label={open ? "Close page menu" : "Open page menu"}
         aria-expanded={open}
       >
-        <GlassSurface
-          width={38}
-          height={66}
-          borderRadius={999}
-          backgroundOpacity={0.08}
-          saturation={2.15}
-          distortionScale={-58}
-          redOffset={1}
-          greenOffset={4}
-          blueOffset={8}
-          contentClassName="pl-1"
-        >
+        <PremiumSurface className="h-[66px] w-[38px] rounded-full pl-1">
           {open ? <ChevronRight className="h-5 w-5" /> : <ChevronLeft className="h-5 w-5" />}
-        </GlassSurface>
+        </PremiumSurface>
       </button>
 
-      <AnimatePresence>
-        {open && (
-          <motion.nav
-            initial={{ opacity: 0, x: 24, scale: 0.96, filter: "blur(8px)" }}
-            animate={{ opacity: 1, x: 0, scale: 1, filter: "blur(0px)" }}
-            exit={{ opacity: 0, x: 24, scale: 0.96, filter: "blur(8px)" }}
-            transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
-            className="fixed right-4 top-1/2 z-30 w-[min(15rem,calc(100vw-2rem))] -translate-y-1/2"
-            aria-label="Page menu"
-          >
-            <div className="rounded-[28px] border border-white/75 bg-white/18 p-2 shadow-[inset_0_1px_0_rgba(255,255,255,0.88),inset_0_-1px_0_rgba(20,20,20,0.04),0_18px_54px_rgba(20,20,20,0.08)] backdrop-blur-[30px]">
-              <RailLink
-                label="Keyboard Game"
-                icon={KeyboardIcon}
-                to="/keyboard-game"
-                onClick={() => onOpenChange(false)}
-              />
-              <RailLink
-                label="Proof Library"
-                icon={Orbit}
-                to="/proof"
-                onClick={() => onOpenChange(false)}
-              />
-              <RailLink
-                label="Resume"
-                icon={FileText}
-                to="/resume"
-                onClick={() => onOpenChange(false)}
-              />
-              <RailExternalLink
-                label="GitHub"
-                icon={Github}
-                href="https://github.com/Flamki"
-                onClick={() => onOpenChange(false)}
-              />
-              <RailExternalLink
-                label="LinkedIn"
-                icon={Linkedin}
-                href="https://www.linkedin.com/in/ayush-s-singh"
-                onClick={() => onOpenChange(false)}
-              />
-              <RailExternalLink
-                label="Gmail"
-                icon={Mail}
-                href="https://mail.google.com/mail/?view=cm&fs=1&to=9833Ayush%40gmail.com"
-                onClick={() => onOpenChange(false)}
-              />
-            </div>
-          </motion.nav>
-        )}
-      </AnimatePresence>
+      {open && (
+        <nav
+          className="panel-enter fixed right-4 top-1/2 z-30 w-[min(15rem,calc(100vw-2rem))] -translate-y-1/2"
+          aria-label="Page menu"
+        >
+          <div className="rounded-[28px] border border-white/75 bg-white/18 p-2 shadow-[inset_0_1px_0_rgba(255,255,255,0.88),inset_0_-1px_0_rgba(20,20,20,0.04),0_18px_54px_rgba(20,20,20,0.08)] backdrop-blur-[30px]">
+            <RailLink
+              label="Keyboard Game"
+              icon={KeyboardIcon}
+              to="/keyboard-game"
+              onClick={() => onOpenChange(false)}
+            />
+            <RailLink
+              label="Portfolio"
+              icon={Orbit}
+              to="/quick-portfolio"
+              onClick={() => onOpenChange(false)}
+            />
+            <RailLink
+              label="Resume"
+              icon={FileText}
+              to="/resume"
+              onClick={() => onOpenChange(false)}
+            />
+            <RailExternalLink
+              label="GitHub"
+              icon={Github}
+              href="https://github.com/Flamki"
+              onClick={() => onOpenChange(false)}
+            />
+            <RailExternalLink
+              label="LinkedIn"
+              icon={Linkedin}
+              href="https://www.linkedin.com/in/ayush-s-singh"
+              onClick={() => onOpenChange(false)}
+            />
+            <RailExternalLink
+              label="Gmail"
+              icon={Mail}
+              href="https://mail.google.com/mail/?view=cm&fs=1&to=9833Ayush%40gmail.com"
+              onClick={() => onOpenChange(false)}
+            />
+          </div>
+        </nav>
+      )}
     </>
   );
 }
@@ -477,7 +415,7 @@ function RailLink({
 }: {
   label: string;
   icon: typeof Smile;
-  to: "/keyboard-game" | "/proof" | "/resume";
+  to: "/keyboard-game" | "/quick-portfolio" | "/resume";
   onClick: () => void;
 }) {
   return (
@@ -486,21 +424,10 @@ function RailLink({
       onClick={onClick}
       className="glass-button group block w-full text-left text-sm font-medium text-foreground/85"
     >
-      <GlassSurface
-        width="100%"
-        height={46}
-        borderRadius={18}
-        backgroundOpacity={0.035}
-        saturation={2.2}
-        distortionScale={-44}
-        redOffset={1}
-        greenOffset={4}
-        blueOffset={7}
-        contentClassName="justify-start gap-3 px-4"
-      >
+      <PremiumSurface className="h-[46px] justify-start gap-3 rounded-[18px] px-4">
         <Icon className="h-4 w-4 text-foreground/65 transition-colors group-hover:text-foreground" />
         <span>{label}</span>
-      </GlassSurface>
+      </PremiumSurface>
     </Link>
   );
 }
@@ -524,21 +451,10 @@ function RailExternalLink({
       onClick={onClick}
       className="glass-button group block w-full text-left text-sm font-medium text-foreground/85"
     >
-      <GlassSurface
-        width="100%"
-        height={46}
-        borderRadius={18}
-        backgroundOpacity={0.035}
-        saturation={2.2}
-        distortionScale={-44}
-        redOffset={1}
-        greenOffset={4}
-        blueOffset={7}
-        contentClassName="justify-start gap-3 px-4"
-      >
+      <PremiumSurface className="h-[46px] justify-start gap-3 rounded-[18px] px-4">
         <Icon className="h-4 w-4 text-foreground/65 transition-colors group-hover:text-foreground" />
         <span>{label}</span>
-      </GlassSurface>
+      </PremiumSurface>
     </a>
   );
 }
@@ -567,42 +483,23 @@ function ChatDrawer({
   }, [open, initialPrompt]);
 
   return (
-    <AnimatePresence>
+    <>
       {open && (
         <>
-          <motion.div
-            key="scrim"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.25 }}
+          <div
             onClick={onClose}
-            className="fixed inset-0 z-40 bg-foreground/20 backdrop-blur-sm"
+            className="scrim-enter fixed inset-0 z-40 bg-foreground/20 backdrop-blur-sm"
           />
-          <motion.div
-            key="panel"
-            initial={{ y: "100%" }}
-            animate={{ y: 0 }}
-            exit={{ y: "100%" }}
-            transition={{ type: "spring", stiffness: 320, damping: 32 }}
-            className="glass-strong fixed inset-0 z-50 flex h-dvh w-screen flex-col px-2 pb-2 pt-3"
-          >
+          <div className="drawer-enter glass-strong fixed inset-0 z-50 flex h-dvh w-screen flex-col px-2 pb-2 pt-3">
             <div className="flex items-center justify-end px-3 pb-2">
               <button
                 onClick={onClose}
                 className="glass-button text-muted-foreground transition-colors hover:text-foreground"
                 aria-label="Close chat"
               >
-                <GlassSurface
-                  width={36}
-                  height={36}
-                  borderRadius={999}
-                  backgroundOpacity={0.06}
-                  saturation={1.6}
-                  distortionScale={-110}
-                >
+                <PremiumSurface className="h-9 w-9 rounded-full">
                   <X className="h-4 w-4" />
-                </GlassSurface>
+                </PremiumSurface>
               </button>
             </div>
             <div className="min-h-0 flex-1">
@@ -616,9 +513,29 @@ function ChatDrawer({
                 <LazyChatPortfolio key={key} initialPrompt={initialPrompt ?? undefined} />
               </Suspense>
             </div>
-          </motion.div>
+          </div>
         </>
       )}
-    </AnimatePresence>
+    </>
   );
+}
+
+function PremiumSurface({ children, className }: { children: ReactNode; className: string }) {
+  return <span className={`premium-surface ${className}`}>{children}</span>;
+}
+
+function useLightweightMode() {
+  const [lightweightMode, setLightweightMode] = useState(false);
+
+  useEffect(() => {
+    const query = window.matchMedia(
+      "(max-width: 767px), (pointer: coarse), (prefers-reduced-motion: reduce)",
+    );
+    const update = () => setLightweightMode(query.matches);
+    update();
+    query.addEventListener("change", update);
+    return () => query.removeEventListener("change", update);
+  }, []);
+
+  return lightweightMode;
 }
