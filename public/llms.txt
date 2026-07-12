@@ -1,15 +1,15 @@
 # Flamki
 
-> Portfolio of Ayush S. Singh, a full stack developer building AI tools, web apps, automation, and fast product experiments.
+> Portfolio of Ayush Singh, a full-stack developer and systems engineer shipping production products, open-source systems work, and blockchain security research.
 
 Canonical URL: https://flamki.com/
 
 ## Identity
 
-- Name: Ayush S. Singh
+- Name: Ayush Singh
 - Brand/site: Flamki
-- Role: Full Stack Developer
-- Focus: full stack web applications, AI tools, automation systems, small SaaS products, and product experiments.
+- Role: Full-Stack Developer and Systems Engineer
+- Focus: production full-stack products, multi-agent AI platforms, open-source systems work, and blockchain security.
 
 ## Important Pages
 
@@ -18,4 +18,4 @@ Canonical URL: https://flamki.com/
 
 ## Summary
 
-Flamki is the personal portfolio of Ayush S. Singh. The site presents Ayush as a full stack developer and includes an interactive chat-style portfolio for learning about his work, projects, skills, and contact options.
+Flamki is the personal portfolio of Ayush Singh. The site presents Ayush as a full-stack developer, systems engineer, open-source contributor, and security researcher, with an interactive chat portfolio for exploring his experience, projects, skills, and contact options.

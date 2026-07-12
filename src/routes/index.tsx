@@ -1,28 +1,31 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { AnimatePresence, motion } from "motion/react";
+import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import {
   ArrowRight,
   Briefcase,
   ChevronLeft,
   ChevronRight,
   FileText,
+  Github,
   Keyboard as KeyboardIcon,
   Layers,
+  Linkedin,
+  Mail,
   PartyPopper,
   Smile,
   UserSearch,
   X,
 } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { ChatPortfolio } from "@/components/ChatPortfolio";
 import GlassSurface from "@/components/GlassSurface";
 import SplashCursor from "@/components/SplashCursor";
 import avatarUrl from "@/assets/ayush-avatar.png";
 
 const SITE_URL = "https://flamki.com";
-const SITE_TITLE = "Ayush S. Singh - Full Stack Developer";
+const SITE_TITLE = "Ayush Singh - Full-Stack Developer & Systems Engineer";
 const SITE_DESCRIPTION =
-  "Portfolio of Ayush S. Singh, a full stack developer building AI tools, web apps, automation systems, and fast product experiments.";
+  "Portfolio of Ayush Singh, a full-stack developer and systems engineer shipping production products, open-source systems work, and blockchain security research.";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -35,9 +38,9 @@ export const Route = createFileRoute("/")({
       {
         name: "keywords",
         content:
-          "Ayush S. Singh, Flamki, full stack developer, AI tools, web apps, automation, React, TypeScript, SaaS, portfolio",
+          "Ayush Singh, Flamki, full-stack developer, systems engineer, open source, security researcher, React, TypeScript, Rust, portfolio",
       },
-      { name: "author", content: "Ayush S. Singh" },
+      { name: "author", content: "Ayush Singh" },
       { name: "robots", content: "index, follow, max-image-preview:large" },
       { property: "og:title", content: SITE_TITLE },
       {
@@ -50,13 +53,13 @@ export const Route = createFileRoute("/")({
       { property: "og:image", content: `${SITE_URL}/og-image.png` },
       { property: "og:image:width", content: "1200" },
       { property: "og:image:height", content: "630" },
-      { property: "og:image:alt", content: "Ayush S. Singh - Full Stack Developer" },
+      { property: "og:image:alt", content: "Ayush Singh - Full-Stack Developer" },
       { property: "og:locale", content: "en_US" },
       { name: "twitter:card", content: "summary_large_image" },
       { name: "twitter:title", content: SITE_TITLE },
       { name: "twitter:description", content: SITE_DESCRIPTION },
       { name: "twitter:image", content: `${SITE_URL}/og-image.png` },
-      { name: "twitter:image:alt", content: "Ayush S. Singh - Full Stack Developer" },
+      { name: "twitter:image:alt", content: "Ayush Singh - Full-Stack Developer" },
     ],
     links: [{ rel: "canonical", href: SITE_URL }],
     scripts: [
@@ -68,19 +71,19 @@ export const Route = createFileRoute("/")({
             {
               "@type": "Person",
               "@id": `${SITE_URL}/#person`,
-              name: "Ayush S. Singh",
+              name: "Ayush Singh",
               url: SITE_URL,
               image: `${SITE_URL}/og-image.png`,
-              jobTitle: "Full Stack Developer",
+              jobTitle: "Full-Stack Developer and Systems Engineer",
               description: SITE_DESCRIPTION,
               knowsAbout: [
                 "Full Stack Development",
+                "Systems Engineering",
                 "React",
                 "TypeScript",
-                "AI Tools",
-                "Automation",
-                "SaaS Products",
-                "Web Applications",
+                "Rust",
+                "Open Source",
+                "Blockchain Security",
               ],
             },
             {
@@ -109,10 +112,32 @@ const QUICK_ACTIONS = [
   { label: "Contact", icon: UserSearch, prompt: "How can I contact or hire you?" },
 ] as const;
 
+const ROTATING_ROLES = [
+  "Full-Stack Developer",
+  "Full-Stack AI Engineer",
+  "Systems Engineer",
+  "Open Source Contributor",
+  "Security Researcher",
+] as const;
+
+const SCRAMBLE_GLYPHS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789<>/{}[]";
+
 function Index() {
   const [chatOpen, setChatOpen] = useState(false);
   const [sideNavOpen, setSideNavOpen] = useState(false);
   const [seed, setSeed] = useState<string | null>(null);
+  const [roleIndex, setRoleIndex] = useState(0);
+  const prefersReducedMotion = useReducedMotion();
+
+  useEffect(() => {
+    if (prefersReducedMotion) return;
+
+    const interval = window.setInterval(() => {
+      setRoleIndex((index) => (index + 1) % ROTATING_ROLES.length);
+    }, 7000);
+
+    return () => window.clearInterval(interval);
+  }, [prefersReducedMotion]);
 
   const openChat = (prompt?: string) => {
     setSeed(prompt ?? null);
@@ -145,9 +170,15 @@ function Index() {
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.05 }}
-          className="font-display mt-2 text-center text-5xl font-bold leading-[1] tracking-tight text-foreground md:text-8xl"
+          className="font-display mt-2 flex h-[1.15em] w-full items-center justify-center text-center text-5xl font-bold leading-none tracking-tight text-foreground md:text-8xl"
         >
-          Full Stack Developer
+          <span className="sr-only">{ROTATING_ROLES.join(", ")}</span>
+          <span aria-hidden className="flex h-[1.2em] w-full items-center justify-center px-2">
+            <ScrambleRole
+              text={ROTATING_ROLES[roleIndex]}
+              reducedMotion={Boolean(prefersReducedMotion)}
+            />
+          </span>
         </motion.h1>
 
         <motion.div
@@ -214,6 +245,64 @@ function Index() {
       <PageRail open={sideNavOpen} onOpenChange={setSideNavOpen} />
       <ChatDrawer open={chatOpen} onClose={() => setChatOpen(false)} initialPrompt={seed} />
     </div>
+  );
+}
+
+function ScrambleRole({ text, reducedMotion }: { text: string; reducedMotion: boolean }) {
+  const [displayText, setDisplayText] = useState(text);
+  const previousTextRef = useRef(text);
+
+  useEffect(() => {
+    if (reducedMotion) {
+      previousTextRef.current = text;
+      setDisplayText(text);
+      return;
+    }
+
+    const previousText = previousTextRef.current;
+    if (previousText === text) {
+      setDisplayText(text);
+      return;
+    }
+
+    const characterCount = Math.max(previousText.length, text.length);
+    const totalFrames = 27;
+    let frame = 0;
+
+    const interval = window.setInterval(() => {
+      frame += 1;
+      const progress = frame / totalFrames;
+      const center = Math.max((characterCount - 1) / 2, 1);
+
+      const nextText = Array.from({ length: characterCount }, (_, index) => {
+        const targetCharacter = text[index] ?? " ";
+        const distanceFromCenter = Math.abs(index - center) / center;
+        const settleAt = 0.18 + distanceFromCenter * 0.62;
+
+        if (progress >= settleAt) return targetCharacter;
+        if (targetCharacter === " " && progress > 0.45) return " ";
+
+        return SCRAMBLE_GLYPHS[(frame * 11 + index * 17) % SCRAMBLE_GLYPHS.length];
+      })
+        .join("")
+        .replace(/ /g, "\u00A0");
+
+      setDisplayText(nextText);
+
+      if (frame >= totalFrames) {
+        window.clearInterval(interval);
+        previousTextRef.current = text;
+        setDisplayText(text);
+      }
+    }, 34);
+
+    return () => window.clearInterval(interval);
+  }, [reducedMotion, text]);
+
+  return (
+    <span className="block w-full max-w-full whitespace-nowrap px-1 text-center text-[clamp(1.5rem,6.7vw,3.55rem)] text-foreground drop-shadow-[0_10px_22px_rgba(20,20,20,0.1)] [font-variant-ligatures:none]">
+      {displayText}
+    </span>
   );
 }
 
@@ -327,6 +416,24 @@ function PageRail({
                 to="/resume"
                 onClick={() => onOpenChange(false)}
               />
+              <RailExternalLink
+                label="GitHub"
+                icon={Github}
+                href="https://github.com/Flamki"
+                onClick={() => onOpenChange(false)}
+              />
+              <RailExternalLink
+                label="LinkedIn"
+                icon={Linkedin}
+                href="https://www.linkedin.com/in/ayush-s-singh"
+                onClick={() => onOpenChange(false)}
+              />
+              <RailExternalLink
+                label="Gmail"
+                icon={Mail}
+                href="https://mail.google.com/mail/?view=cm&fs=1&to=9833Ayush%40gmail.com"
+                onClick={() => onOpenChange(false)}
+              />
             </div>
           </motion.nav>
         )}
@@ -368,6 +475,44 @@ function RailLink({
         <span>{label}</span>
       </GlassSurface>
     </Link>
+  );
+}
+
+function RailExternalLink({
+  label,
+  icon: Icon,
+  href,
+  onClick,
+}: {
+  label: string;
+  icon: typeof Smile;
+  href: string;
+  onClick: () => void;
+}) {
+  return (
+    <a
+      href={href}
+      target="_blank"
+      rel="noreferrer"
+      onClick={onClick}
+      className="glass-button group block w-full text-left text-sm font-medium text-foreground/85"
+    >
+      <GlassSurface
+        width="100%"
+        height={46}
+        borderRadius={18}
+        backgroundOpacity={0.035}
+        saturation={2.2}
+        distortionScale={-44}
+        redOffset={1}
+        greenOffset={4}
+        blueOffset={7}
+        contentClassName="justify-start gap-3 px-4"
+      >
+        <Icon className="h-4 w-4 text-foreground/65 transition-colors group-hover:text-foreground" />
+        <span>{label}</span>
+      </GlassSurface>
+    </a>
   );
 }
 

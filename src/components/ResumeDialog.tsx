@@ -23,7 +23,7 @@ export function ResumeDialog({ open, onOpenChange }: ResumeDialogProps) {
             <div className="min-w-0">
               <DialogTitle className="flex items-center gap-2 text-xl font-bold text-foreground md:text-2xl">
                 <FileText className="h-5 w-5 text-chat-user" />
-                Ayush S. Singh Resume
+                Ayush Singh Resume
               </DialogTitle>
               <DialogDescription className="mt-1 text-sm text-muted-foreground">
                 Preview it here, open it full screen, or download the PDF.
@@ -80,7 +80,7 @@ export function ResumeDialog({ open, onOpenChange }: ResumeDialogProps) {
 
         <div className="resume-preview-shell min-h-0 overflow-hidden rounded-[22px] border border-white/55 bg-white/35 p-2 shadow-[inset_0_1px_0_rgb(255_255_255/0.62),0_20px_60px_-40px_rgb(0_0_0/0.55)] backdrop-blur-2xl">
           <iframe
-            title="Ayush S. Singh Resume preview"
+            title="Ayush Singh Resume preview"
             src={`${RESUME_URL}#toolbar=0&navpanes=0&view=FitH`}
             className="h-full w-full rounded-[16px] bg-white"
           />

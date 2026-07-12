@@ -7,11 +7,11 @@ import { RESUME_URL } from "@/lib/resume";
 export const Route = createFileRoute("/resume")({
   head: () => ({
     meta: [
-      { title: "Resume - Ayush S. Singh" },
+      { title: "Resume - Ayush Singh" },
       {
         name: "description",
         content:
-          "Preview and download the resume of Ayush S. Singh, full stack developer and systems engineer.",
+          "Preview and download the resume of Ayush Singh, full-stack developer and systems engineer.",
       },
     ],
   }),
@@ -97,7 +97,7 @@ function ResumePage() {
                 <FileText className="h-4 w-4" />
                 resume
               </p>
-              <h1 className="mt-1 text-2xl font-black leading-tight md:text-4xl">Ayush S. Singh</h1>
+              <h1 className="mt-1 text-2xl font-black leading-tight md:text-4xl">Ayush Singh</h1>
             </div>
 
             <p className="max-w-xl text-sm font-medium leading-6 text-muted-foreground">
@@ -107,7 +107,7 @@ function ResumePage() {
 
           <div className="min-h-0 overflow-hidden rounded-[26px] border border-white/55 bg-white/45 p-2 shadow-[inset_0_1px_0_rgba(255,255,255,0.76),0_24px_80px_rgba(20,20,20,0.1)] backdrop-blur-2xl">
             <iframe
-              title="Ayush S. Singh resume preview"
+              title="Ayush Singh resume preview"
               src={`${RESUME_URL}#toolbar=0&navpanes=0&view=FitH`}
               className="h-full w-full rounded-[20px] bg-white"
             />

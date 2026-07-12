@@ -77,18 +77,18 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Ayush S. Singh — Full Stack Developer" },
+      { title: "Ayush Singh - Full-Stack Developer & Systems Engineer" },
       {
         name: "description",
         content:
-          "Flamki is the portfolio of Ayush S. Singh, a full stack developer building AI tools, web apps, automation systems, and fast product experiments.",
+          "Flamki is the portfolio of Ayush Singh, a full-stack developer and systems engineer shipping production products, open-source systems work, and blockchain security research.",
       },
       {
         name: "keywords",
         content:
-          "Ayush S. Singh, Flamki, full stack developer, AI developer, web developer, React developer, automation, SaaS builder, portfolio",
+          "Ayush Singh, Flamki, full-stack developer, systems engineer, open source contributor, security researcher, React, TypeScript, Rust, portfolio",
       },
-      { name: "author", content: "Ayush S. Singh" },
+      { name: "author", content: "Ayush Singh" },
       { name: "application-name", content: "Flamki" },
       { name: "robots", content: "index, follow, max-image-preview:large" },
       { name: "googlebot", content: "index, follow, max-image-preview:large" },

@@ -52,21 +52,36 @@ export function ChatPortfolio({ initialPrompt }: { initialPrompt?: string }) {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const audioObjectUrlRef = useRef("");
+  const audioEndResolverRef = useRef<((played: boolean) => void) | null>(null);
   const recognitionRef = useRef<BrowserSpeechRecognition | null>(null);
   const finalTranscriptRef = useRef("");
   const liveTranscriptRef = useRef("");
   const shouldSubmitTranscriptRef = useRef(false);
-  const lastSpokenMessageIdRef = useRef("");
+  const speechQueueRef = useRef<SpeechQueueItem[]>([]);
+  const speechQueueRunningRef = useRef(false);
+  const speechGenerationRef = useRef(0);
+  const speechAbortControllersRef = useRef(new Set<AbortController>());
+  const speechMessageIdRef = useRef("");
+  const speechQueuedLengthRef = useRef(0);
   const seededRef = useRef(false);
 
-  const { messages, sendMessage, setMessages, status } = useChat({
+  const { messages, sendMessage, status } = useChat({
     transport: new DefaultChatTransport({ api: "/api/chat" }),
   });
 
   const isLoading = status === "submitted" || status === "streaming";
 
   const stopVoicePlayback = useCallback(() => {
+    speechGenerationRef.current += 1;
+    speechQueueRef.current = [];
+    speechQueueRunningRef.current = false;
+    speechMessageIdRef.current = "";
+    speechQueuedLengthRef.current = 0;
+    speechAbortControllersRef.current.forEach((controller) => controller.abort());
+    speechAbortControllersRef.current.clear();
     audioRef.current?.pause();
+    audioEndResolverRef.current?.(false);
+    audioEndResolverRef.current = null;
     audioRef.current = null;
     window.speechSynthesis?.cancel();
     setIsSpeaking(false);
@@ -84,10 +99,9 @@ export function ChatPortfolio({ initialPrompt }: { initialPrompt?: string }) {
       stopVoicePlayback();
       setShineKey((key) => key + 1);
       setInput("");
-      setMessages([]);
       await sendMessage({ text: value });
     },
-    [isLoading, sendMessage, setMessages, stopVoicePlayback],
+    [isLoading, sendMessage, stopVoicePlayback],
   );
 
   const submitRef = useRef(submit);
@@ -104,6 +118,11 @@ export function ChatPortfolio({ initialPrompt }: { initialPrompt?: string }) {
     return latestAssistantMessage ? getMessageText(latestAssistantMessage) : "";
   }, [latestAssistantMessage]);
 
+  const visibleMessages = useMemo(() => {
+    const latestUserIndex = messages.findLastIndex((message) => message.role === "user");
+    return latestUserIndex >= 0 ? messages.slice(latestUserIndex) : messages;
+  }, [messages]);
+
   const speakWithBrowserFallback = useCallback((text: string) => {
     if (typeof window === "undefined" || !("speechSynthesis" in window)) return;
 
@@ -113,13 +132,15 @@ export function ChatPortfolio({ initialPrompt }: { initialPrompt?: string }) {
     window.speechSynthesis.cancel();
     const utterance = new SpeechSynthesisUtterance(cleanText);
     utterance.lang = "en-US";
-    utterance.rate = 1.06;
+    utterance.rate = 0.98;
     utterance.pitch = 1;
     utterance.volume = 1;
 
     const voices = window.speechSynthesis.getVoices();
     const preferredVoice =
-      voices.find((voice) => /google us english|microsoft aria/i.test(voice.name)) ??
+      voices.find((voice) => /microsoft andrew/i.test(voice.name)) ??
+      voices.find((voice) => /microsoft prabhat|google.*india|rishi/i.test(voice.name)) ??
+      voices.find((voice) => /microsoft aria|google us english/i.test(voice.name)) ??
       voices.find((voice) => voice.lang.toLowerCase().startsWith("en"));
 
     if (preferredVoice) utterance.voice = preferredVoice;
@@ -129,44 +150,109 @@ export function ChatPortfolio({ initialPrompt }: { initialPrompt?: string }) {
     window.speechSynthesis.speak(utterance);
   }, []);
 
-  const speakText = useCallback(
-    async (text: string) => {
-      if (typeof window === "undefined") return;
+  const synthesizeSpeech = useCallback(async (text: string, generation: number) => {
+    const controller = new AbortController();
+    speechAbortControllersRef.current.add(controller);
 
+    try {
+      const response = await fetch("/api/tts", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ text }),
+        signal: controller.signal,
+      });
+
+      if (!response.ok) throw new Error(`TTS failed with ${response.status}`);
+      const objectUrl = await responseToAudioObjectUrl(response, controller.signal);
+      if (generation !== speechGenerationRef.current) {
+        URL.revokeObjectURL(objectUrl);
+        return null;
+      }
+      return objectUrl;
+    } catch {
+      return null;
+    } finally {
+      speechAbortControllersRef.current.delete(controller);
+    }
+  }, []);
+
+  const playSpeechQueue = useCallback(async () => {
+    if (speechQueueRunningRef.current || typeof window === "undefined") return;
+
+    const playbackGeneration = speechGenerationRef.current;
+    speechQueueRunningRef.current = true;
+    setIsSpeaking(true);
+
+    while (
+      playbackGeneration === speechGenerationRef.current &&
+      speechQueueRef.current.length > 0
+    ) {
+      const item = speechQueueRef.current.shift();
+      if (!item || item.generation !== speechGenerationRef.current) continue;
+
+      const objectUrl = await item.audioPromise;
+      if (item.generation !== speechGenerationRef.current) {
+        if (objectUrl) URL.revokeObjectURL(objectUrl);
+        continue;
+      }
+
+      if (!objectUrl) {
+        speechQueueRef.current = [];
+        speechQueueRunningRef.current = false;
+        speakWithBrowserFallback(item.text);
+        return;
+      }
+
+      audioObjectUrlRef.current = objectUrl;
+      const audio = new Audio(objectUrl);
+      audio.preload = "auto";
+      audio.volume = 1;
+      audioRef.current = audio;
+
+      const played = await new Promise<boolean>((resolve) => {
+        const finish = (didPlay: boolean) => {
+          if (audioEndResolverRef.current !== finish) return;
+          audioEndResolverRef.current = null;
+          resolve(didPlay);
+        };
+        audioEndResolverRef.current = finish;
+        audio.onended = () => finish(true);
+        audio.onerror = () => finish(false);
+        void audio.play().catch(() => finish(false));
+      });
+
+      if (audioObjectUrlRef.current === objectUrl) audioObjectUrlRef.current = "";
+      if (audioRef.current === audio) audioRef.current = null;
+      URL.revokeObjectURL(objectUrl);
+
+      if (!played && item.generation === speechGenerationRef.current) {
+        speechQueueRef.current = [];
+        speechQueueRunningRef.current = false;
+        speakWithBrowserFallback(item.text);
+        return;
+      }
+    }
+
+    if (playbackGeneration === speechGenerationRef.current) {
+      speechQueueRunningRef.current = false;
+      setIsSpeaking(false);
+    }
+  }, [speakWithBrowserFallback]);
+
+  const enqueueSpeech = useCallback(
+    (text: string) => {
       const cleanText = cleanTextForSpeech(text);
       if (!cleanText) return;
 
-      stopVoicePlayback();
-
-      try {
-        const response = await fetch("/api/tts", {
-          method: "POST",
-          headers: { "content-type": "application/json" },
-          body: JSON.stringify({ text: cleanText }),
-        });
-
-        if (!response.ok) throw new Error(`TTS failed with ${response.status}`);
-
-        const audioBlob = await response.blob();
-        const objectUrl = URL.createObjectURL(audioBlob);
-        const audio = new Audio(objectUrl);
-        audio.volume = 1;
-        audioObjectUrlRef.current = objectUrl;
-        audioRef.current = audio;
-
-        audio.onended = stopVoicePlayback;
-        audio.onerror = () => {
-          stopVoicePlayback();
-          speakWithBrowserFallback(cleanText);
-        };
-
-        setIsSpeaking(true);
-        await audio.play();
-      } catch {
-        speakWithBrowserFallback(cleanText);
-      }
+      const generation = speechGenerationRef.current;
+      speechQueueRef.current.push({
+        text: cleanText,
+        generation,
+        audioPromise: synthesizeSpeech(cleanText, generation),
+      });
+      void playSpeechQueue();
     },
-    [speakWithBrowserFallback, stopVoicePlayback],
+    [playSpeechQueue, synthesizeSpeech],
   );
 
   const toggleVoice = () => {
@@ -174,8 +260,6 @@ export function ChatPortfolio({ initialPrompt }: { initialPrompt?: string }) {
       const next = !enabled;
       if (!next) {
         stopVoicePlayback();
-      } else if (latestAssistantText) {
-        window.setTimeout(() => void speakText(latestAssistantText), 0);
       }
       return next;
     });
@@ -271,18 +355,34 @@ export function ChatPortfolio({ initialPrompt }: { initialPrompt?: string }) {
   }, [stopVoicePlayback]);
 
   useEffect(() => {
-    if (!voiceEnabled || !audioPlaybackSupported || isLoading) return;
+    if (!voiceEnabled || !audioPlaybackSupported) return;
     if (!latestAssistantMessage || !latestAssistantText.trim()) return;
-    if (lastSpokenMessageIdRef.current === latestAssistantMessage.id) return;
 
-    lastSpokenMessageIdRef.current = latestAssistantMessage.id;
-    void speakText(latestAssistantText);
+    if (speechMessageIdRef.current !== latestAssistantMessage.id) {
+      stopVoicePlayback();
+      speechMessageIdRef.current = latestAssistantMessage.id;
+    }
+
+    const cleanText = cleanTextForSpeech(latestAssistantText);
+    if (cleanText.length < speechQueuedLengthRef.current) return;
+
+    const pendingText = cleanText.slice(speechQueuedLengthRef.current);
+    const { chunks, consumed } = takeSpeakableChunks(
+      pendingText,
+      !isLoading,
+      speechQueuedLengthRef.current === 0,
+    );
+    if (!chunks.length) return;
+
+    speechQueuedLengthRef.current += consumed;
+    chunks.forEach(enqueueSpeech);
   }, [
     audioPlaybackSupported,
+    enqueueSpeech,
     isLoading,
     latestAssistantMessage,
     latestAssistantText,
-    speakText,
+    stopVoicePlayback,
     voiceEnabled,
   ]);
 
@@ -297,7 +397,6 @@ export function ChatPortfolio({ initialPrompt }: { initialPrompt?: string }) {
 
   const lastIsUser = messages.length > 0 && messages[messages.length - 1].role === "user";
   const showThinking = isLoading && lastIsUser;
-  const hasAssistantResponse = messages.some((message) => message.role === "assistant");
   const showSuggestions = messages.length === 0 && !input.trim() && !inputFocused && !isLoading;
 
   return (
@@ -319,12 +418,10 @@ export function ChatPortfolio({ initialPrompt }: { initialPrompt?: string }) {
 
           <div className="flex w-full flex-col gap-6">
             <AnimatePresence initial={false}>
-              {messages.map((m) => {
+              {visibleMessages.map((m) => {
                 const text = m.parts.map((p) => (p.type === "text" ? p.text : "")).join("");
                 const isUser = m.role === "user";
                 if (isUser) {
-                  if (hasAssistantResponse) return null;
-
                   return (
                     <motion.div
                       key={m.id}
@@ -546,6 +643,12 @@ type BrowserSpeechRecognitionResult = {
   0?: { transcript?: string };
 };
 
+type SpeechQueueItem = {
+  text: string;
+  generation: number;
+  audioPromise: Promise<string | null>;
+};
+
 type BrowserSpeechRecognitionEvent = Event & {
   resultIndex: number;
   results: {
@@ -587,11 +690,188 @@ function getMessageText(message: { parts: Array<{ type: string; text?: string }>
 function cleanTextForSpeech(text: string) {
   return text
     .replace(/\[([^\]]+)\]\([^)]+\)/g, "$1")
-    .replace(/https?:\/\/[^\s)]+/g, "link")
+    .replace(/https?:\/\/[^\s)]+/g, "")
+    .replace(/^#{1,6}\s+/gm, "")
+    .replace(/^\s*[-*]\s+/gm, "")
     .replace(/[`*_#>]/g, "")
+    .replace(/\s*[·|]\s*/g, ", ")
+    .replace(/[()[\]{}]/g, ",")
     .replace(/\s+/g, " ")
+    .replace(/\s+([,.!?;:])/g, "$1")
+    .replace(/,{2,}/g, ",")
     .trim()
-    .slice(0, 1200);
+    .slice(0, 2400);
+}
+
+async function responseToAudioObjectUrl(response: Response, signal: AbortSignal) {
+  const canStreamMp3 =
+    response.body &&
+    typeof MediaSource !== "undefined" &&
+    MediaSource.isTypeSupported("audio/mpeg");
+
+  if (!canStreamMp3) {
+    return URL.createObjectURL(await response.blob());
+  }
+
+  const mediaSource = new MediaSource();
+  const objectUrl = URL.createObjectURL(mediaSource);
+  void pipeAudioToMediaSource(mediaSource, response.body!, signal);
+  return objectUrl;
+}
+
+async function pipeAudioToMediaSource(
+  mediaSource: MediaSource,
+  stream: ReadableStream<Uint8Array>,
+  signal: AbortSignal,
+) {
+  try {
+    await waitForMediaSourceOpen(mediaSource, signal);
+    const sourceBuffer = mediaSource.addSourceBuffer("audio/mpeg");
+    const reader = stream.getReader();
+
+    while (!signal.aborted) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      if (!value?.byteLength) continue;
+      await appendAudioChunk(sourceBuffer, value, signal);
+    }
+
+    if (!signal.aborted && mediaSource.readyState === "open") {
+      mediaSource.endOfStream();
+    }
+  } catch {
+    if (mediaSource.readyState === "open") {
+      try {
+        mediaSource.endOfStream("network");
+      } catch {
+        // The audio element fallback handles a media-source shutdown race.
+      }
+    }
+  }
+}
+
+function waitForMediaSourceOpen(mediaSource: MediaSource, signal: AbortSignal) {
+  if (mediaSource.readyState === "open") return Promise.resolve();
+
+  return new Promise<void>((resolve, reject) => {
+    const cleanup = () => {
+      mediaSource.removeEventListener("sourceopen", handleOpen);
+      signal.removeEventListener("abort", handleAbort);
+    };
+    const handleOpen = () => {
+      cleanup();
+      resolve();
+    };
+    const handleAbort = () => {
+      cleanup();
+      reject(new DOMException("Speech cancelled", "AbortError"));
+    };
+
+    mediaSource.addEventListener("sourceopen", handleOpen, { once: true });
+    signal.addEventListener("abort", handleAbort, { once: true });
+  });
+}
+
+function appendAudioChunk(sourceBuffer: SourceBuffer, chunk: Uint8Array, signal: AbortSignal) {
+  return new Promise<void>((resolve, reject) => {
+    const cleanup = () => {
+      sourceBuffer.removeEventListener("updateend", handleUpdateEnd);
+      sourceBuffer.removeEventListener("error", handleError);
+      signal.removeEventListener("abort", handleAbort);
+    };
+    const handleUpdateEnd = () => {
+      cleanup();
+      resolve();
+    };
+    const handleError = () => {
+      cleanup();
+      reject(new Error("Could not buffer speech audio"));
+    };
+    const handleAbort = () => {
+      cleanup();
+      reject(new DOMException("Speech cancelled", "AbortError"));
+    };
+
+    sourceBuffer.addEventListener("updateend", handleUpdateEnd, { once: true });
+    sourceBuffer.addEventListener("error", handleError, { once: true });
+    signal.addEventListener("abort", handleAbort, { once: true });
+    sourceBuffer.appendBuffer(new Uint8Array(chunk).buffer);
+  });
+}
+
+function takeSpeakableChunks(text: string, flush: boolean, fastStart: boolean) {
+  const maxChunkLength = 620;
+  const chunks: string[] = [];
+  let consumed = 0;
+
+  while (consumed < text.length) {
+    const remainingWithSpace = text.slice(consumed);
+    const leadingSpace = remainingWithSpace.length - remainingWithSpace.trimStart().length;
+    consumed += leadingSpace;
+
+    const remaining = text.slice(consumed);
+    if (!remaining) break;
+
+    const sentenceEnds = [...remaining.matchAll(/[.!?](?:["')\]]{0,2})(?:\s+|$)/g)].map(
+      (match) => (match.index ?? 0) + match[0].length,
+    );
+
+    if (flush && remaining.length <= maxChunkLength) {
+      const chunk = remaining.trim();
+      if (chunk) chunks.push(chunk);
+      consumed = text.length;
+      break;
+    }
+
+    if (!flush && remaining.length <= maxChunkLength) {
+      const sentencesNeeded = fastStart && chunks.length === 0 ? 1 : 2;
+      const sentenceBoundary = sentenceEnds[sentencesNeeded - 1];
+      const liveLengthLimit = sentencesNeeded === 1 ? 72 : 420;
+
+      if (sentenceBoundary) {
+        const chunk = remaining.slice(0, sentenceBoundary).trim();
+        if (chunk) chunks.push(chunk);
+        consumed += sentenceBoundary;
+        continue;
+      }
+
+      if (remaining.length < liveLengthLimit) break;
+
+      const searchStart = sentencesNeeded === 1 ? 42 : 160;
+      const searchWindow = remaining.slice(searchStart, liveLengthLimit);
+      const softBoundary = Math.max(
+        searchWindow.lastIndexOf(","),
+        searchWindow.lastIndexOf(";"),
+        searchWindow.lastIndexOf(" "),
+      );
+      const end = searchStart + Math.max(softBoundary, 1);
+      const chunk = remaining.slice(0, end).trim();
+      if (chunk) chunks.push(chunk);
+      consumed += end;
+      continue;
+    }
+
+    const sentenceBoundary = sentenceEnds
+      .filter((boundary) => boundary >= 220 && boundary <= maxChunkLength)
+      .at(-1);
+    const searchWindow = remaining.slice(260, maxChunkLength);
+    const softBoundary = Math.max(
+      searchWindow.lastIndexOf(","),
+      searchWindow.lastIndexOf(";"),
+      searchWindow.lastIndexOf(" "),
+    );
+    const end = sentenceBoundary ?? 260 + Math.max(softBoundary, 1);
+
+    if (end > 0) {
+      const chunk = remaining.slice(0, end).trim();
+      if (chunk) chunks.push(chunk);
+      consumed += end;
+      continue;
+    }
+    break;
+  }
+
+  return { chunks, consumed };
 }
 
 function AssistantMessage({ text }: { text: string }) {

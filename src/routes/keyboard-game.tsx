@@ -101,7 +101,7 @@ export const Route = createFileRoute("/keyboard-game")({
       {
         name: "description",
         content:
-          "A one minute glass keyboard typing challenge by Ayush S. Singh with endless generated text, WPM, accuracy, and live key sound.",
+          "A one minute glass keyboard typing challenge by Ayush Singh with endless generated text, WPM, accuracy, and live key sound.",
       },
     ],
   }),
