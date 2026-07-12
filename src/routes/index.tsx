@@ -24,7 +24,7 @@ const LazyChatPortfolio = lazy(() =>
 const LazySplashCursor = lazy(() => import("@/components/SplashCursor"));
 
 const SITE_URL = "https://flamki.com";
-const OG_IMAGE_URL = `${SITE_URL}/og-image-v2.png`;
+const OG_IMAGE_URL = `${SITE_URL}/og-image-v3.png`;
 const SITE_TITLE = "Ayush Singh - Full-Stack Developer & Systems Engineer";
 const SITE_DESCRIPTION =
   "Portfolio of Ayush Singh, a full-stack developer and systems engineer shipping production products, open-source systems work, and blockchain security research.";
@@ -53,6 +53,7 @@ export const Route = createFileRoute("/")({
       { property: "og:url", content: SITE_URL },
       { property: "og:site_name", content: "Flamki" },
       { property: "og:image", content: OG_IMAGE_URL },
+      { property: "og:image:secure_url", content: OG_IMAGE_URL },
       { property: "og:image:width", content: "1200" },
       { property: "og:image:height", content: "630" },
       { property: "og:image:alt", content: "Ayush Singh - Full-Stack Developer" },
