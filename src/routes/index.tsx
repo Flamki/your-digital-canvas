@@ -132,6 +132,7 @@ function Index() {
   const [roleIndex, setRoleIndex] = useState(0);
   const [showDesktopCursor, setShowDesktopCursor] = useState(false);
   const lightweightMode = useLightweightMode();
+  const prefersReducedMotion = usePrefersReducedMotion();
 
   useEffect(() => {
     const interval = window.setInterval(() => {
@@ -181,7 +182,7 @@ function Index() {
         <h1 className="home-enter home-enter-delay-1 font-display mt-2 flex h-[1.15em] w-full items-center justify-center text-center text-5xl font-bold leading-none tracking-tight text-foreground md:text-8xl">
           <span className="sr-only">{ROTATING_ROLES.join(", ")}</span>
           <span aria-hidden className="flex h-[1.2em] w-full items-center justify-center px-2">
-            <ScrambleRole text={ROTATING_ROLES[roleIndex]} reducedMotion={lightweightMode} />
+            <ScrambleRole text={ROTATING_ROLES[roleIndex]} reducedMotion={prefersReducedMotion} />
           </span>
         </h1>
 
@@ -539,4 +540,18 @@ function useLightweightMode() {
   }, []);
 
   return lightweightMode;
+}
+
+function usePrefersReducedMotion() {
+  const [prefersReducedMotion, setPrefersReducedMotion] = useState(false);
+
+  useEffect(() => {
+    const query = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const update = () => setPrefersReducedMotion(query.matches);
+    update();
+    query.addEventListener("change", update);
+    return () => query.removeEventListener("change", update);
+  }, []);
+
+  return prefersReducedMotion;
 }
