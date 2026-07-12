@@ -184,7 +184,7 @@ function Index() {
           </span>
         </h1>
 
-        <div className="home-enter home-enter-delay-2 flex flex-1 items-center justify-center py-4 md:py-5">
+        <div className="home-avatar-stage home-enter home-enter-delay-2 flex flex-1 items-center justify-center py-4 md:py-5">
           <img
             src={avatarUrl}
             alt="Ayush avatar"
