@@ -11,7 +11,7 @@ import {
   Layers,
   Linkedin,
   Mail,
-  PartyPopper,
+  Orbit,
   Smile,
   UserSearch,
   X,
@@ -107,7 +107,7 @@ const QUICK_ACTIONS = [
   { label: "Me", icon: Smile, prompt: "Tell me about yourself." },
   { label: "Projects", icon: Briefcase, prompt: "Show me your projects." },
   { label: "Skills", icon: Layers, prompt: "What are your top skills?" },
-  { label: "Fun", icon: PartyPopper, prompt: "Tell me something fun about you." },
+  { label: "Proof", icon: Orbit, action: "proof" },
   { label: "Resume", icon: FileText, action: "resume" },
   { label: "Contact", icon: UserSearch, prompt: "How can I contact or hire you?" },
 ] as const;
@@ -235,7 +235,9 @@ function Index() {
               label={label}
               icon={Icon}
               prompt={"prompt" in action ? action.prompt : undefined}
-              to={"action" in action && action.action === "resume" ? "/resume" : undefined}
+              to={
+                "action" in action ? (action.action === "resume" ? "/resume" : "/proof") : undefined
+              }
               onPrompt={openChat}
             />
           ))}
@@ -316,7 +318,7 @@ function QuickActionButton({
   label: string;
   icon: typeof Smile;
   prompt?: string;
-  to?: "/resume";
+  to?: "/resume" | "/proof";
   onPrompt: (prompt?: string) => void;
 }) {
   const content = (
@@ -342,7 +344,7 @@ function QuickActionButton({
       <Link
         to={to}
         className="glass-button min-w-[92px] text-sm font-medium text-foreground/90"
-        aria-label="Preview and download resume"
+        aria-label={to === "/resume" ? "Preview and download resume" : "Explore proof of work"}
       >
         {content}
       </Link>
@@ -411,6 +413,12 @@ function PageRail({
                 onClick={() => onOpenChange(false)}
               />
               <RailLink
+                label="Proof Library"
+                icon={Orbit}
+                to="/proof"
+                onClick={() => onOpenChange(false)}
+              />
+              <RailLink
                 label="Resume"
                 icon={FileText}
                 to="/resume"
@@ -450,7 +458,7 @@ function RailLink({
 }: {
   label: string;
   icon: typeof Smile;
-  to: "/keyboard-game" | "/resume";
+  to: "/keyboard-game" | "/proof" | "/resume";
   onClick: () => void;
 }) {
   return (
