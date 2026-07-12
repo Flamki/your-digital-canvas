@@ -26,6 +26,7 @@ const LazyChatPortfolio = lazy(() =>
 const LazySplashCursor = lazy(() => import("@/components/SplashCursor"));
 
 const SITE_URL = "https://flamki.com";
+const OG_IMAGE_URL = `${SITE_URL}/og-image-v2.png`;
 const SITE_TITLE = "Ayush Singh - Full-Stack Developer & Systems Engineer";
 const SITE_DESCRIPTION =
   "Portfolio of Ayush Singh, a full-stack developer and systems engineer shipping production products, open-source systems work, and blockchain security research.";
@@ -53,7 +54,7 @@ export const Route = createFileRoute("/")({
       { property: "og:type", content: "website" },
       { property: "og:url", content: SITE_URL },
       { property: "og:site_name", content: "Flamki" },
-      { property: "og:image", content: `${SITE_URL}/og-image.png` },
+      { property: "og:image", content: OG_IMAGE_URL },
       { property: "og:image:width", content: "1200" },
       { property: "og:image:height", content: "630" },
       { property: "og:image:alt", content: "Ayush Singh - Full-Stack Developer" },
@@ -61,7 +62,7 @@ export const Route = createFileRoute("/")({
       { name: "twitter:card", content: "summary_large_image" },
       { name: "twitter:title", content: SITE_TITLE },
       { name: "twitter:description", content: SITE_DESCRIPTION },
-      { name: "twitter:image", content: `${SITE_URL}/og-image.png` },
+      { name: "twitter:image", content: OG_IMAGE_URL },
       { name: "twitter:image:alt", content: "Ayush Singh - Full-Stack Developer" },
     ],
     links: [{ rel: "canonical", href: SITE_URL }],
@@ -76,7 +77,7 @@ export const Route = createFileRoute("/")({
               "@id": `${SITE_URL}/#person`,
               name: "Ayush Singh",
               url: SITE_URL,
-              image: `${SITE_URL}/og-image.png`,
+              image: OG_IMAGE_URL,
               jobTitle: "Full-Stack Developer and Systems Engineer",
               description: SITE_DESCRIPTION,
               knowsAbout: [
