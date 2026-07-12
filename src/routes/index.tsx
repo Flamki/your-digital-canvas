@@ -16,11 +16,14 @@ import {
   UserSearch,
   X,
 } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
-import { ChatPortfolio } from "@/components/ChatPortfolio";
+import { lazy, Suspense, useEffect, useRef, useState } from "react";
 import GlassSurface from "@/components/GlassSurface";
-import SplashCursor from "@/components/SplashCursor";
-import avatarUrl from "@/assets/ayush-avatar.png";
+import avatarUrl from "@/assets/ayush-avatar.webp";
+
+const LazyChatPortfolio = lazy(() =>
+  import("@/components/ChatPortfolio").then((module) => ({ default: module.ChatPortfolio })),
+);
+const LazySplashCursor = lazy(() => import("@/components/SplashCursor"));
 
 const SITE_URL = "https://flamki.com";
 const SITE_TITLE = "Ayush Singh - Full-Stack Developer & Systems Engineer";
@@ -127,6 +130,7 @@ function Index() {
   const [sideNavOpen, setSideNavOpen] = useState(false);
   const [seed, setSeed] = useState<string | null>(null);
   const [roleIndex, setRoleIndex] = useState(0);
+  const [showDesktopCursor, setShowDesktopCursor] = useState(false);
   const prefersReducedMotion = useReducedMotion();
 
   useEffect(() => {
@@ -139,6 +143,14 @@ function Index() {
     return () => window.clearInterval(interval);
   }, [prefersReducedMotion]);
 
+  useEffect(() => {
+    if (prefersReducedMotion) return;
+    if (!window.matchMedia("(min-width: 768px) and (pointer: fine)").matches) return;
+
+    const timeout = window.setTimeout(() => setShowDesktopCursor(true), 700);
+    return () => window.clearTimeout(timeout);
+  }, [prefersReducedMotion]);
+
   const openChat = (prompt?: string) => {
     setSeed(prompt ?? null);
     setChatOpen(true);
@@ -148,13 +160,17 @@ function Index() {
   return (
     <div className="relative h-dvh overflow-hidden">
       <PaintBackdrop />
-      <SplashCursor
-        DENSITY_DISSIPATION={1}
-        VELOCITY_DISSIPATION={0.5}
-        PRESSURE={0.6}
-        COLOR_UPDATE_SPEED={27}
-        SHADING={false}
-      />
+      {showDesktopCursor && (
+        <Suspense fallback={null}>
+          <LazySplashCursor
+            DENSITY_DISSIPATION={1}
+            VELOCITY_DISSIPATION={0.5}
+            PRESSURE={0.6}
+            COLOR_UPDATE_SPEED={27}
+            SHADING={false}
+          />
+        </Suspense>
+      )}
 
       <main className="relative z-10 mx-auto flex h-dvh max-w-3xl flex-col items-center px-6 pb-5 pt-[9vh] md:pt-[10vh]">
         <motion.p
@@ -192,6 +208,8 @@ function Index() {
             alt="Ayush avatar"
             width={512}
             height={512}
+            fetchPriority="high"
+            decoding="async"
             className="h-40 w-64 select-none object-contain drop-shadow-[0_20px_40px_rgba(0,0,0,0.15)] md:h-52 md:w-80"
             draggable={false}
           />
@@ -587,7 +605,15 @@ function ChatDrawer({
               </button>
             </div>
             <div className="min-h-0 flex-1">
-              <ChatPortfolio key={key} initialPrompt={initialPrompt ?? undefined} />
+              <Suspense
+                fallback={
+                  <div className="flex h-full items-center justify-center text-sm font-medium text-muted-foreground">
+                    Opening conversation…
+                  </div>
+                }
+              >
+                <LazyChatPortfolio key={key} initialPrompt={initialPrompt ?? undefined} />
+              </Suspense>
             </div>
           </motion.div>
         </>

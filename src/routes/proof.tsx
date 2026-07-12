@@ -10,10 +10,24 @@ import {
   GitPullRequest,
   Search,
   ShieldAlert,
+  Sparkles,
 } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+
+type ProofSearch = {
+  focus?: string;
+  guided?: boolean;
+};
 
 export const Route = createFileRoute("/proof")({
+  validateSearch: (search: Record<string, unknown>): ProofSearch => ({
+    focus: typeof search.focus === "string" ? search.focus : undefined,
+    guided:
+      search.guided === true ||
+      search.guided === 1 ||
+      search.guided === "1" ||
+      search.guided === "true",
+  }),
   head: () => ({
     meta: [
       { title: "Proof Library - Ayush Singh" },
@@ -336,9 +350,27 @@ const PROOFS: Proof[] = [
 ];
 
 function ProofLibraryPage() {
+  const routeSearch = Route.useSearch();
+  const focusedProof = PROOFS.find((proof) => proof.id === routeSearch.focus);
   const [activeCategory, setActiveCategory] = useState<Category | "all">("all");
-  const [selectedId, setSelectedId] = useState(PROOFS[0].id);
+  const [selectedId, setSelectedId] = useState(focusedProof?.id ?? PROOFS[0].id);
   const [search, setSearch] = useState("");
+
+  useEffect(() => {
+    if (!focusedProof) return;
+
+    setSelectedId(focusedProof.id);
+    setActiveCategory("all");
+    setSearch("");
+
+    const frame = window.requestAnimationFrame(() => {
+      document
+        .querySelector(`[data-proof-id="${focusedProof.id}"]`)
+        ?.scrollIntoView({ block: "nearest", behavior: "smooth" });
+    });
+
+    return () => window.cancelAnimationFrame(frame);
+  }, [focusedProof]);
 
   const visibleProofs = useMemo(() => {
     const normalizedSearch = search.trim().toLowerCase();
@@ -389,7 +421,37 @@ function ProofLibraryPage() {
           </div>
         </header>
 
-        <section className="glass-subtle mt-8 overflow-hidden rounded-[24px] px-4 py-4 shadow-[0_18px_60px_-42px_rgb(15_23_42/0.45)] md:mt-10 md:px-6">
+        <AnimatePresence initial={false}>
+          {routeSearch.guided && focusedProof && (
+            <motion.div
+              initial={{ opacity: 0, y: -8, filter: "blur(8px)" }}
+              animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+              exit={{ opacity: 0, y: -6, filter: "blur(6px)" }}
+              transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
+              className="glass-subtle mt-6 flex items-center gap-3 rounded-full py-2 pl-2 pr-3 shadow-[0_18px_55px_-40px_rgb(76_29_149/0.8)]"
+            >
+              <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-foreground text-background">
+                <Sparkles className="h-3.5 w-3.5" />
+              </span>
+              <p className="min-w-0 flex-1 truncate text-xs font-semibold text-foreground/70">
+                <span className="font-black text-foreground">Guided selection:</span> your question
+                matched {focusedProof.title}
+              </p>
+              <a
+                href="/proof"
+                className="shrink-0 rounded-full px-2 py-1 text-[9px] font-black uppercase tracking-[0.12em] text-muted-foreground transition hover:bg-white/40 hover:text-foreground"
+              >
+                Explore all
+              </a>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        <section
+          className={`glass-subtle overflow-hidden rounded-[24px] px-4 py-4 shadow-[0_18px_60px_-42px_rgb(15_23_42/0.45)] md:px-6 ${
+            routeSearch.guided && focusedProof ? "mt-4" : "mt-8 md:mt-10"
+          }`}
+        >
           <div className="flex flex-col gap-4 md:flex-row md:items-center md:gap-6">
             <div className="shrink-0">
               <p className="text-[10px] font-black uppercase tracking-[0.18em] text-muted-foreground">
@@ -457,7 +519,10 @@ function ProofLibraryPage() {
           </section>
 
           <div className="lg:sticky lg:top-6">
-            <EvidenceCard proof={selected} />
+            <EvidenceCard
+              proof={selected}
+              guided={Boolean(routeSearch.guided && focusedProof?.id === selected.id)}
+            />
           </div>
         </div>
       </main>
@@ -536,6 +601,7 @@ function ProofRow({
   return (
     <button
       type="button"
+      data-proof-id={proof.id}
       onClick={onClick}
       className={`group grid w-full grid-cols-[34px_minmax(0,1fr)_24px] items-start gap-3 rounded-[20px] px-3 py-4 text-left transition ${
         active
@@ -571,13 +637,17 @@ function ProofRow({
   );
 }
 
-function EvidenceCard({ proof }: { proof: Proof }) {
+function EvidenceCard({ proof, guided = false }: { proof: Proof; guided?: boolean }) {
   const meta = CATEGORY_META[proof.category];
   const Icon = meta.icon;
   const isExperiment = proof.category === "experiments";
 
   return (
-    <div className="glass-strong relative min-h-[520px] overflow-hidden rounded-[30px]">
+    <div
+      className={`glass-strong relative min-h-[520px] overflow-hidden rounded-[30px] transition-shadow duration-500 ${
+        guided ? "ring-2 ring-violet-400/25 shadow-[0_28px_90px_-44px_rgb(124_58_237/0.75)]" : ""
+      }`}
+    >
       <div className="pointer-events-none absolute inset-x-12 top-0 h-px bg-gradient-to-r from-transparent via-white to-transparent opacity-90" />
       <div
         className="pointer-events-none absolute -right-20 -top-24 h-56 w-56 rounded-full opacity-[0.13] blur-3xl"

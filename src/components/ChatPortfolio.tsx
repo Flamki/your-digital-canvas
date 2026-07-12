@@ -6,12 +6,12 @@ import {
   ArrowUp,
   Briefcase,
   ChevronDown,
+  Compass,
   ExternalLink,
   FileText,
   Layers,
   Mic,
   MicOff,
-  PartyPopper,
   Smile,
   UserSearch,
   Volume2,
@@ -19,7 +19,8 @@ import {
 } from "lucide-react";
 import BorderGlow from "@/components/BorderGlow";
 import GlassSurface from "@/components/GlassSurface";
-import avatarUrl from "@/assets/ayush-avatar.png";
+import avatarUrl from "@/assets/ayush-avatar.webp";
+import { findGuidedProof, type GuidedProof } from "@/lib/proof-guide";
 import { RESUME_URL } from "@/lib/resume";
 
 const CHAT_SUGGESTIONS = [
@@ -34,7 +35,11 @@ const CHAT_SUGGESTIONS = [
     icon: Layers,
     prompt: "What are your skills? Give me a list of your soft and hard skills.",
   },
-  { label: "Fun", icon: PartyPopper, prompt: "Tell me something fun about you." },
+  {
+    label: "Guide",
+    icon: Compass,
+    prompt: "Guide me through your strongest compiler and systems work.",
+  },
   { label: "Resume", icon: FileText, action: "resume" },
   { label: "Contact", icon: UserSearch, prompt: "How can I contact you?" },
 ] as const;
@@ -117,6 +122,13 @@ export function ChatPortfolio({ initialPrompt }: { initialPrompt?: string }) {
   const latestAssistantText = useMemo(() => {
     return latestAssistantMessage ? getMessageText(latestAssistantMessage) : "";
   }, [latestAssistantMessage]);
+
+  const latestUserText = useMemo(() => {
+    const latestUserMessage = [...messages].reverse().find((message) => message.role === "user");
+    return latestUserMessage ? getMessageText(latestUserMessage) : "";
+  }, [messages]);
+
+  const guidedProof = useMemo(() => findGuidedProof(latestUserText), [latestUserText]);
 
   const visibleMessages = useMemo(() => {
     const latestUserIndex = messages.findLastIndex((message) => message.role === "user");
@@ -457,6 +469,12 @@ export function ChatPortfolio({ initialPrompt }: { initialPrompt?: string }) {
                 >
                   <ThinkingDots />
                 </motion.div>
+              )}
+            </AnimatePresence>
+
+            <AnimatePresence>
+              {guidedProof && latestAssistantMessage && !isLoading && (
+                <GuidedProofCard key={guidedProof.id} proof={guidedProof} />
               )}
             </AnimatePresence>
           </div>
@@ -919,6 +937,46 @@ function AssistantMessage({ text }: { text: string }) {
         );
       })}
     </div>
+  );
+}
+
+function GuidedProofCard({ proof }: { proof: GuidedProof }) {
+  const href = `/proof?focus=${encodeURIComponent(proof.id)}&guided=1`;
+
+  return (
+    <motion.a
+      href={href}
+      target="_blank"
+      rel="noreferrer"
+      initial={{ opacity: 0, y: 12, scale: 0.98 }}
+      animate={{ opacity: 1, y: 0, scale: 1 }}
+      exit={{ opacity: 0, y: 8, scale: 0.98 }}
+      transition={{ type: "spring", stiffness: 280, damping: 24 }}
+      className="group relative mx-auto mt-1 block w-full max-w-2xl overflow-hidden rounded-[24px] border border-white/60 bg-white/25 p-1 shadow-[0_20px_60px_-38px_rgb(76_29_149/0.65)] backdrop-blur-2xl"
+      aria-label={`Open guided proof for ${proof.title}`}
+    >
+      <span className="pointer-events-none absolute -right-8 -top-12 h-32 w-32 rounded-full bg-violet-400/20 blur-3xl transition duration-500 group-hover:bg-violet-400/30" />
+      <span className="flex items-center gap-4 rounded-[20px] border border-white/50 bg-white/20 px-4 py-3.5 shadow-[0_1px_0_rgb(255_255_255/0.75)_inset] transition duration-300 group-hover:bg-white/36">
+        <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-foreground text-background shadow-[0_10px_28px_-14px_rgb(15_23_42/0.8)] transition duration-300 group-hover:scale-105">
+          <Compass className="h-4 w-4" />
+        </span>
+        <span className="min-w-0 flex-1">
+          <span className="block text-[9px] font-black uppercase tracking-[0.18em] text-violet-700/70">
+            Guided proof · {proof.category}
+          </span>
+          <span className="mt-0.5 block text-base font-bold leading-tight text-foreground">
+            {proof.title}
+          </span>
+          <span className="mt-1 block text-xs leading-5 text-muted-foreground">
+            {proof.summary}
+          </span>
+        </span>
+        <span className="flex shrink-0 items-center gap-1 text-[10px] font-black uppercase tracking-[0.12em] text-foreground/55">
+          Open
+          <ExternalLink className="h-3.5 w-3.5 transition group-hover:-translate-y-0.5 group-hover:translate-x-0.5" />
+        </span>
+      </span>
+    </motion.a>
   );
 }
 

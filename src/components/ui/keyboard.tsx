@@ -259,42 +259,64 @@ const KeyboardProvider = ({
 }) => {
   const audioContextRef = useRef<AudioContext | null>(null);
   const audioBufferRef = useRef<AudioBuffer | null>(null);
+  const audioLoadPromiseRef = useRef<Promise<void> | null>(null);
+  const audioAbortControllerRef = useRef<AbortController | null>(null);
   const [pressedKeys, setPressedKeys] = useState<Set<string>>(new Set());
   const [lastPressedKey, setLastPressedKey] = useState<string | null>(null);
-  const [soundLoaded, setSoundLoaded] = useState(false);
   const [isVisible, setIsVisible] = useState(false);
+
+  const ensureSoundLoaded = useCallback(() => {
+    if (!enableSound || typeof window === "undefined") return;
+    if (audioBufferRef.current || audioLoadPromiseRef.current) return;
+
+    const audioContext = audioContextRef.current ?? new AudioContext();
+    audioContextRef.current = audioContext;
+    if (audioContext.state === "suspended") void audioContext.resume();
+
+    const controller = new AbortController();
+    audioAbortControllerRef.current = controller;
+
+    const loadPromise = (async () => {
+      const response = await fetch("/sounds/sound.ogg", {
+        cache: "force-cache",
+        signal: controller.signal,
+      });
+      if (!response.ok) throw new Error(`Sound request failed with ${response.status}`);
+
+      const arrayBuffer = await response.arrayBuffer();
+      if (controller.signal.aborted) return;
+      audioBufferRef.current = await audioContext.decodeAudioData(arrayBuffer);
+    })()
+      .catch((error) => {
+        if (!controller.signal.aborted) console.warn("Failed to load keyboard sound:", error);
+      })
+      .finally(() => {
+        if (audioLoadPromiseRef.current === loadPromise) audioLoadPromiseRef.current = null;
+      });
+
+    audioLoadPromiseRef.current = loadPromise;
+  }, [enableSound]);
 
   useEffect(() => {
     if (!enableSound) return;
 
-    // Initialize AudioContext and load sound file
-    const initAudio = async () => {
-      try {
-        audioContextRef.current = new AudioContext();
-        const response = await fetch("/sounds/sound.ogg");
-        if (!response.ok) {
-          console.warn("Sound file not available");
-          return;
-        }
-        const arrayBuffer = await response.arrayBuffer();
-        audioBufferRef.current = await audioContextRef.current.decodeAudioData(arrayBuffer);
-        setSoundLoaded(true);
-      } catch (error) {
-        console.warn("Failed to load sound:", error);
-      }
-    };
-
-    initAudio();
-
     return () => {
+      audioAbortControllerRef.current?.abort();
+      audioAbortControllerRef.current = null;
+      audioLoadPromiseRef.current = null;
+      audioBufferRef.current = null;
       audioContextRef.current?.close();
+      audioContextRef.current = null;
     };
   }, [enableSound]);
 
   const playSoundDown = useCallback(
     (keyCode: string) => {
-      if (!enableSound || !soundLoaded) return;
-      if (!audioContextRef.current || !audioBufferRef.current) return;
+      if (!enableSound) return;
+      if (!audioContextRef.current || !audioBufferRef.current) {
+        ensureSoundLoaded();
+        return;
+      }
 
       const soundDef = SOUND_DEFINES_DOWN[keyCode];
       if (!soundDef) return;
@@ -313,13 +335,16 @@ const KeyboardProvider = ({
       source.connect(audioContextRef.current.destination);
       source.start(0, startTime, duration);
     },
-    [enableSound, soundLoaded],
+    [enableSound, ensureSoundLoaded],
   );
 
   const playSoundUp = useCallback(
     (keyCode: string) => {
-      if (!enableSound || !soundLoaded) return;
-      if (!audioContextRef.current || !audioBufferRef.current) return;
+      if (!enableSound) return;
+      if (!audioContextRef.current || !audioBufferRef.current) {
+        ensureSoundLoaded();
+        return;
+      }
 
       const soundDef = SOUND_DEFINES_UP[keyCode];
       if (!soundDef) return;
@@ -338,7 +363,7 @@ const KeyboardProvider = ({
       source.connect(audioContextRef.current.destination);
       source.start(0, startTime, duration);
     },
-    [enableSound, soundLoaded],
+    [enableSound, ensureSoundLoaded],
   );
 
   const setPressed = useCallback((keyCode: string) => {
