@@ -9,28 +9,18 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as ResumeRouteImport } from './routes/resume'
-import { Route as QuickPortfolioRouteImport } from './routes/quick-portfolio'
-import { Route as ProofRouteImport } from './routes/proof'
-import { Route as KeyboardGameRouteImport } from './routes/keyboard-game'
 import { Route as IndexRouteImport } from './routes/index'
-import { Route as ApiTtsRouteImport } from './routes/api/tts'
-import { Route as ApiKeyboardLeaderboardRouteImport } from './routes/api/keyboard-leaderboard'
+import { Route as KeyboardGameRouteImport } from './routes/keyboard-game'
+import { Route as ProofRouteImport } from './routes/proof'
+import { Route as QuickPortfolioRouteImport } from './routes/quick-portfolio'
+import { Route as ResumeRouteImport } from './routes/resume'
 import { Route as ApiChatRouteImport } from './routes/api/chat'
+import { Route as ApiKeyboardLeaderboardRouteImport } from './routes/api/keyboard-leaderboard'
+import { Route as ApiTtsRouteImport } from './routes/api/tts'
 
-const ResumeRoute = ResumeRouteImport.update({
-  id: '/resume',
-  path: '/resume',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const QuickPortfolioRoute = QuickPortfolioRouteImport.update({
-  id: '/quick-portfolio',
-  path: '/quick-portfolio',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ProofRoute = ProofRouteImport.update({
-  id: '/proof',
-  path: '/proof',
+const IndexRoute = IndexRouteImport.update({
+  id: '/',
+  path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
 const KeyboardGameRoute = KeyboardGameRouteImport.update({
@@ -38,14 +28,24 @@ const KeyboardGameRoute = KeyboardGameRouteImport.update({
   path: '/keyboard-game',
   getParentRoute: () => rootRouteImport,
 } as any)
-const IndexRoute = IndexRouteImport.update({
-  id: '/',
-  path: '/',
+const ProofRoute = ProofRouteImport.update({
+  id: '/proof',
+  path: '/proof',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ApiTtsRoute = ApiTtsRouteImport.update({
-  id: '/api/tts',
-  path: '/api/tts',
+const QuickPortfolioRoute = QuickPortfolioRouteImport.update({
+  id: '/quick-portfolio',
+  path: '/quick-portfolio',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ResumeRoute = ResumeRouteImport.update({
+  id: '/resume',
+  path: '/resume',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiChatRoute = ApiChatRouteImport.update({
+  id: '/api/chat',
+  path: '/api/chat',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiKeyboardLeaderboardRoute = ApiKeyboardLeaderboardRouteImport.update({
@@ -53,9 +53,9 @@ const ApiKeyboardLeaderboardRoute = ApiKeyboardLeaderboardRouteImport.update({
   path: '/api/keyboard-leaderboard',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ApiChatRoute = ApiChatRouteImport.update({
-  id: '/api/chat',
-  path: '/api/chat',
+const ApiTtsRoute = ApiTtsRouteImport.update({
+  id: '/api/tts',
+  path: '/api/tts',
   getParentRoute: () => rootRouteImport,
 } as any)
 
@@ -136,25 +136,11 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/resume': {
-      id: '/resume'
-      path: '/resume'
-      fullPath: '/resume'
-      preLoaderRoute: typeof ResumeRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/quick-portfolio': {
-      id: '/quick-portfolio'
-      path: '/quick-portfolio'
-      fullPath: '/quick-portfolio'
-      preLoaderRoute: typeof QuickPortfolioRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/proof': {
-      id: '/proof'
-      path: '/proof'
-      fullPath: '/proof'
-      preLoaderRoute: typeof ProofRouteImport
+    '/': {
+      id: '/'
+      path: '/'
+      fullPath: '/'
+      preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/keyboard-game': {
@@ -164,18 +150,32 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof KeyboardGameRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/': {
-      id: '/'
-      path: '/'
-      fullPath: '/'
-      preLoaderRoute: typeof IndexRouteImport
+    '/proof': {
+      id: '/proof'
+      path: '/proof'
+      fullPath: '/proof'
+      preLoaderRoute: typeof ProofRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/api/tts': {
-      id: '/api/tts'
-      path: '/api/tts'
-      fullPath: '/api/tts'
-      preLoaderRoute: typeof ApiTtsRouteImport
+    '/quick-portfolio': {
+      id: '/quick-portfolio'
+      path: '/quick-portfolio'
+      fullPath: '/quick-portfolio'
+      preLoaderRoute: typeof QuickPortfolioRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/resume': {
+      id: '/resume'
+      path: '/resume'
+      fullPath: '/resume'
+      preLoaderRoute: typeof ResumeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/chat': {
+      id: '/api/chat'
+      path: '/api/chat'
+      fullPath: '/api/chat'
+      preLoaderRoute: typeof ApiChatRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/keyboard-leaderboard': {
@@ -185,11 +185,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiKeyboardLeaderboardRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/api/chat': {
-      id: '/api/chat'
-      path: '/api/chat'
-      fullPath: '/api/chat'
-      preLoaderRoute: typeof ApiChatRouteImport
+    '/api/tts': {
+      id: '/api/tts'
+      path: '/api/tts'
+      fullPath: '/api/tts'
+      preLoaderRoute: typeof ApiTtsRouteImport
       parentRoute: typeof rootRouteImport
     }
   }

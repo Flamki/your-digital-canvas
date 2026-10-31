@@ -508,13 +508,11 @@ export function ChatPortfolio({ initialPrompt }: { initialPrompt?: string }) {
                       window.location.assign("/resume");
                       return;
                     }
-                    submit(suggestion.prompt);
+                    if ("prompt" in suggestion) submit(suggestion.prompt);
                   }}
                   className="glass-button text-sm font-medium text-foreground/90"
                   aria-label={
-                    "action" in suggestion && suggestion.action === "resume"
-                      ? "Preview and download resume"
-                      : suggestion.prompt
+                    "prompt" in suggestion ? suggestion.prompt : "Preview and download resume"
                   }
                 >
                   <GlassSurface

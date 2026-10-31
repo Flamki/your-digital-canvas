@@ -57,7 +57,7 @@ function cleanTtsInput(text: string) {
 }
 
 function audioResponse(audio: Buffer, cacheStatus: "HIT" | "MISS") {
-  return new Response(audio, {
+  return new Response(new Uint8Array(audio), {
     headers: {
       "content-type": "audio/mpeg",
       "cache-control": "private, max-age=3600",
